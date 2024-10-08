@@ -1,6 +1,7 @@
 package com.ceos20.instagram.post.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Entity
@@ -15,6 +16,6 @@ public class Hashtag {
     private Long id;
 
     // 게시글 해시태그
-    @Column(nullable = false)
+    @NotNull
     private String tag;
 }

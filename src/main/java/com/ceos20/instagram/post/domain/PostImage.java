@@ -1,6 +1,7 @@
 package com.ceos20.instagram.post.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Entity
@@ -15,7 +16,7 @@ public class PostImage {
     private Long id;
 
     // 파일 경로
-    @Column(nullable = false)
+    @NotNull
     private String path;
 
     // 이미지 이름
@@ -23,6 +24,7 @@ public class PostImage {
 
     // 이미지가 사용된 게시글
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="post_id", nullable = false)
-    private Post postId;
+    @JoinColumn(name="post_id")
+    @NotNull
+    private Post post;
 }

@@ -2,6 +2,7 @@ package com.ceos20.instagram.post.domain;
 
 import com.ceos20.instagram.user.domain.User;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Entity
@@ -17,11 +18,13 @@ public class PostHashtag {
 
     // 해시태그가 사용된 게시글
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="post_id", nullable = false)
-    private Post postId;
+    @JoinColumn(name="post_id")
+    @NotNull
+    private Post post;
 
     // 사용된 해시태그
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="hashtag_id", nullable = false)
-    private Hashtag hashtagId;
+    @JoinColumn(name="hashtag_id")
+    @NotNull
+    private Hashtag hashtag;
 }

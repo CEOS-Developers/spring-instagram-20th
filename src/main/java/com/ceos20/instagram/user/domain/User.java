@@ -1,7 +1,12 @@
 package com.ceos20.instagram.user.domain;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
+
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -16,11 +21,13 @@ public class User {
     private Long id;
 
     // 사용자 이름
-    @Column(length = 30, nullable = false, unique = true)
+    @Size(min=1, max=30)
+    @NotNull
+    @Column(unique = true)
     private String nickname;
 
     // 비밀번호
-    @Column(nullable = false)
+    @NotNull
     private String password;
 
     // 이메일
@@ -30,7 +37,7 @@ public class User {
     private String phone;
 
     // 소개글
-    @Column(length = 150, nullable = true)
+    @Size(min=0, max=150)
     private String introduce;
 
     // 성별
@@ -44,26 +51,49 @@ public class User {
 
     // 팔로잉 수
     @Builder.Default
-    @Column(nullable = false)
+    @NotNull
     private Long followingCount = 0L;
 
     // 팔로워 수
     @Builder.Default
-    @Column(nullable = false)
+    @NotNull
     private Long followerCount = 0L;
 
     // 게시물 수
     @Builder.Default
-    @Column(nullable = false)
+    @NotNull
     private Long postCount = 0L;
 
     // 가입 일자
-    @Column(nullable = false)
+    @NotNull
     @Builder.Default
     private LocalDateTime registedAt = LocalDateTime.now();
 
     // 생일
-    private LocalDateTime birth;
+    private LocalDate birth;
 
+    public void increaseFollowingCount() {
+        followingCount++;
+    }
+
+    public void decreaseFollowingCount() {
+        followingCount--;
+    }
+
+    public void increaseFollowerCount() {
+        followerCount++;
+    }
+
+    public void decreaseFollowerCount() {
+        followerCount--;
+    }
+
+    public void increasePostCount() {
+        postCount++;
+    }
+
+    public void decreasePostCount() {
+        postCount--;
+    }
 
 }

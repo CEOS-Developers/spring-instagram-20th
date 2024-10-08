@@ -2,6 +2,7 @@ package com.ceos20.instagram.post.domain;
 
 import com.ceos20.instagram.user.domain.User;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Entity
@@ -17,11 +18,13 @@ public class Scrap {
 
     // 스크랩한 게시글
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="post_id", nullable = false)
-    private Post postId;
+    @JoinColumn(name="post_id")
+    @NotNull
+    private Post post;
 
     // 스크랩한 유저
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="user_id", nullable = false)
-    private User userId;
+    @JoinColumn(name="user_id")
+    @NotNull
+    private User user;
 }

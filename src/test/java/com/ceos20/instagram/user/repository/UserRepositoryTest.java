@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -30,7 +31,7 @@ public class UserRepositoryTest {
 
         // when
         userRepository.save(user);
-        User findUser = userRepository.findByNickname("010709min");
+        User findUser = userRepository.findUserByNickname("010709min");
 
         //then
         assertEquals(user.getNickname(), findUser.getNickname());
@@ -49,10 +50,10 @@ public class UserRepositoryTest {
 
         // when
         userRepository.save(user);
-        User findUser = userRepository.findById(user.getId());
+        Optional<User> findUser = userRepository.findUserById(user.getId());
 
         // then
-        assertEquals(user.getId(), findUser.getId());
+        assertEquals(user.getId(), findUser);
     }
 
     @Test

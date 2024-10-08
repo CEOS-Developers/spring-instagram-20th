@@ -1,6 +1,7 @@
 package com.ceos20.instagram.user.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -18,10 +19,11 @@ public class Follow {
 
     // 팔로우 한 시간
     @Builder.Default
-    @Column(nullable = false)
+    @NotNull
     private LocalDateTime createdAt = LocalDateTime.now();
 
     // 친한 치구 여부
+    @Builder.Default
     private Boolean isBestFriend = false;
 
     // 팔로우 한 유저
