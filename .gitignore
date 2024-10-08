@@ -4,7 +4,6 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-application.yml
 
 ### STS ###
 .apt_generated
@@ -36,7 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
-
 *#
 *.iml
 *.ipr
@@ -80,4 +78,4 @@ secrets.yml
 .sts4-cache
 
 .idea
-.env
+application.yml
