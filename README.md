@@ -459,7 +459,7 @@ fetch join이란? : jpa에서 일반 join을 사용해 엔티티를 가져올 �
 근데 fetch join을 사용할 때 distinct를 안 하면 문제가 생길 수 있다. 일대다 fetch join의 경우, 부모 엔티티가 자식 엔티티의 수만큼 중복돼서 나타나는 문제가 있다.  
 `select t from Team t join fetch t.member` 으로 Team(일)을 조회할 때 팀이 속한 Member(다)도 조회할 때, inner join에 의해 매칭되는 데이터를 반환하여 Team A에 속한 멤버가 3명이면 Team A가 세 번 조회되는 문제가 발생한다. 이를 막으려면 `select distinct t from Team t join fetch t.members` 이렇게 distinct 키워드를 붙여 각 팀마다 한 번씩만 조회되게 해야 한다. 이때 distinct는 SELECT 대상(Team)에 대해서 중복제거 한다.
 
-일대다를 패치 조인한다면 꼭 distinct 를 써야 한다 !
+#### 일대다를 패치 조인한다면 꼭 distinct 를 써야 한다 !
 
 
 ### Q4. fetch join 을 할 때 생기는 에러가 생기는 3가지 에러 메시지의 원인과 해결 방안
@@ -498,14 +498,14 @@ spring:
 ```
 
 
-#### 정리 : 지연로딩을 사용하더라도 N+1 문제를 겪어 이를 해결하기 위해 fetch join을 사용하는데, xxToOne에서 fetch join 사용이 자유롭지만 xxToMany에서는 오류 뜨는 경우가 있으니 잘 사용하기
+#### 정리 : 지연로딩을 사용하더라도 N+1 문제를 겪어 이를 해결하기 위해 fetch join을 사용하는데, xxToOne에서 fetch join 사용이 자유롭지만 `xxToMany에서는 오류` 뜨는 경우가 있으니 잘 사용하기
 
 
 # 2주차
 
 ### 지난주차 코드 리팩토링
 
-1. Base Entity 사용
+#### Base Entity 사용
 
 created_at과 updated_at 속성은 여러 엔티티에서 공통적으로 사용되므로, 이를 BaseTimeEntity로 분리하고, 해당 속성이 필요한 엔티티들은 BaseTimeEntity를 상속받아 사용하도록 구현하였다.
 
@@ -587,3 +587,647 @@ public class InstagramApplication {
 - @EnableJpaAuditing : 어플리케이션의 main method가 있는 클래스에 적용하며 JPA Auditing(감시) 기능을 어플리케이션 전역적으로 활성화하기 위한 어노테이션이다. 
 
 
+### 구현할 기능
+
+- 게시글 조회
+- 게시글에 사진과 함께 글 작성하기
+- 게시글에 댓글 및 대댓글 기능
+- 게시글에 좋아요 기능
+- 게시글, 댓글, 좋아요 삭제 기능
+- 유저 간 1:1 DM 기능
+- 팔로우 기능
+- 댓글 작성하기, 대댓글 작성하기
+- 댓글 좋아요
+- 프로필 이미지 등록하기
+
+
+### cascade=CascadeType.ALL 속성
+
+```
+@Transactional
+    public void createPost(PostRequestDto postRequestDto,Long userId){
+
+        //User 객체 가져오기
+        User user=userRepository.findById(userId).orElseThrow(()-> new IllegalArgumentException("해당 id의 유저가 존재하지 않습니다."));
+        
+        //post 엔티티 생성, 저장
+        Post newPost=postRequestDto.toPost(user);
+        //postRepository.save(newPost);  (불필요)
+        
+        //MultipartFile을 PostImage로 변환
+        List<PostImage> images=postImageService.changeToPostImage(postRequestDto.getImages(), newPost);
+        
+        //PostImage를 db에 저장
+        //postImageService.saveImages(images);  (불필요)
+        
+        //Post와 image 매핑
+        newPost.mapImages(images);
+
+        postRepository.save(newPost);
+    }
+```
+- Q. postRepository.save(newPost)를 아직 하지 않은 상태에서도 PostImage와의 연관관계 설정이 가능하고 db에 저장될 때 post의 id가 외래키로 잘 들어가는 이유
+ 
+  A. Post가 PostImage를 참조하고 있고(@OneToMany) 이때 cascade = CascadeType.ALL 속성을걸어줘서!
+
+- Q. postImageService.saveImages(images)로 이미지를 직접 저장하지 않아도 postRepository.save(newPost)로 함께 저장되는 이유
+
+  A. Post가 PostImage를 참조하고 있고(@OneToMany) 이때 cascade = CascadeType.ALL 속성을걸어줘서! (매핑해줘도 cascade = CascadeType.ALL 속성이 없다면 각각 save 해줘야함)
+
+
+처음에는 부모 엔티티를 먼저 데이터베이스에 저장한 후 자식 엔티티와의 연관관계를 설정해야 한다고 생각했다.
+하지만 Post가 PostImage를 참조하도록 매핑하고, cascade = CascadeType.ALL 옵션을 설정했기 때문에 그렇지 않아도 된다. PostRepository.save(newPost)가 호출되면 JPA는 먼저 부모 엔티티인 Post를 데이터베이스에 저장하고, 이어서 자식 엔티티인 PostImage도 함께 저장한다. 이때 PostImage는 이미 changeToPostImage 메서드에서 Post와의 연관관계가 설정된 상태이므로, Post가 저장된 후 생성된 Post의 ID가 외래키로 PostImage에 저장된 채로 PostImage가 데이터베이스에 저장된다.
+
+  만약 `cascade = CascadeType.ALL` 사용하지 않았다면 코드는아래와 같아야 한다.
+
+  ```
+  postRepository.save(newPost);
+
+  List<PostImage> images = postImageService.changeToPostImage(postRequestDto.getImages(), newPost);
+
+  postImageService.saveImages(images);
+  
+  //Post와 image 매핑
+  newPost.mapImages(images);
+
+  postRepository.save(newPost);
+
+  ```
+### N+1 문제 해결법
+
+- N+1문제 : Lazy 로딩을 하더라도 연관된(매핑된) 엔티티를 get하는 식으로 사용할 때 추가적으로 쿼리가 나가게 된다.
+
+- 다대일 관계 (Comment에서 Post를 사용) : fetch join 하기
+
+- 일대다 관계 (Post에서 Images를 사용) : `1) distinct + fetch join` or `2) @BatchSize 이용`
+
+-> 두 개이상의 List를 fetch join하거나 페이징을 사용할 댄 fetch join 사용이 불가능하므로 @BatchSize를 이용해야 한다. 따라서 일대다 관계에서는 @BatchSize를 이용하는 경우가 많다고 한다.
+   
+
+### 쿼리 조회
+
+#### 팔로우_유저의_게시글_리스트_조회 테스트
+
+```
+Hibernate: 
+    select
+        distinct p1_0.post_id,
+        p1_0.content,
+        p1_0.created_at,
+        i1_0.post_id,
+        i1_0.post_image_id,
+        i1_0.post_imageurl,
+        p1_0.like_num,
+        p1_0.updated_at,
+        p1_0.user_id 
+    from
+        post p1_0 
+    join
+        post_image i1_0 
+            on p1_0.post_id=i1_0.post_id 
+    where
+        p1_0.user_id in (?, ?)
+```
+-> 팔로잉중인 유저들의 게시글을 모두 조회할 때 발생하는 쿼리다. 팔로잉중인 유저들의 id가 매우 많을 수도 있어 user들의 id를 in절에 모아 한번에 조회하도록 하였다. 또한 PostResponseDto에서 getImage()하여 imageurl 리스트를 함께 반환해주므로 N+1문제가 발생할 수 있다. 이를 막기 위해 fetch join하여 post와 image를 한번에 가져오게하고, 일대다 관계이기에 post가 중복돼서 나타날 수 있어 distinct 키워드를 붙여주었다.
+
+
+
+#### 부모댓글 조회 테스트
+```
+Hibernate: 
+    select
+        c1_0.comment_id,
+        c1_0.content,
+        c1_0.created_at,
+        c1_0.like_num,
+        c1_0.parent_id,
+        p1_0.post_id,
+        p1_0.content,
+        p1_0.created_at,
+        p1_0.like_num,
+        p1_0.updated_at,
+        p1_0.user_id,
+        c1_0.updated_at,
+        u1_0.user_id,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.introduce,
+        u1_0.is_public,
+        u1_0.nickname,
+        u1_0.password,
+        u1_0.phone,
+        u1_0.profile_imageurl,
+        u1_0.status,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        comment c1_0 
+    join
+        user u1_0 
+            on u1_0.user_id=c1_0.user_id 
+    join
+        post p1_0 
+            on p1_0.post_id=c1_0.post_id 
+    where
+        c1_0.post_id=? 
+        and c1_0.parent_id is null
+```
+
+부모 댓글을 조회할 때 post의 id와 댓글 작성자의 id도 함께 넘겨줘야하기에 comment.getPost().id()와 comment.getUser().id()를 하게 되어 N+1 문제가 발생할 수 있다. 이를 막기 위해 comment를 조회할 때 post와 user도 fetch join으로 함께 가져오도록 했다.
+
+
+### Service 테스트
+
+
+```
+@ExtendWith(MockitoExtension.class)  //@Mock 사용하기 위해
+class PostServiceTest {
+
+    @Mock
+    private PostRepository postRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private PostImageService postImageService;
+
+    @Mock
+    private FollowRepository followRepository;
+
+    @Mock
+    private CommentRepository commentRepository;
+
+    @Mock
+    private PostLikeRepository postLikeRepository;
+
+    @InjectMocks
+    private PostService postService;
+
+```
+
+- `@ExtendWith(MockitoExtension.class)` : Mockito가 @Mock과 @InjectMocks를 처리할 수 있게끔 테스트 실행을 확장시켜준다
+
+- `@Mock` : 의존성 객체들을 가짜 객체로 대체하여 service의 비즈니스 로직을 테스트할 때, 실제 의존성 객체들의 동작에 신경 쓰지 않고 service 자체의 로직을 집중적으로 검증할 수 있다.
+
+- `@InjectMocks` : 실제 PostService에 Mock 객체들을 주입해준다.
+
+
+```
+@BeforeEach // 테스트 실행 전에 실행
+    void setUp(){
+        user=User.builder()
+                .id(1L)
+                .nickname("sh")
+                .username("test1")
+                .phone("010-1111-1111")
+                .email("11@naver.com")
+                .password("111")
+                .introduce("test")
+                .profileImageurl("https://example.com/default-profile.png")
+                .isPublic(true)
+                .build();
+        user2=User.builder()
+                .id(2L)
+                .nickname("shh")
+                .username("test2")
+                .phone("010-2222-1111")
+                .email("22@naver.com")
+                .password("222")
+                .introduce("test2")
+                .profileImageurl("https://example.com/default-profile2.png")
+                .isPublic(true)
+                .build();
+
+
+        image1=PostImage.builder()
+                .id(1L)
+                .postImageurl("/test1")
+                .build();
+
+        image2=PostImage.builder()
+                .id(2L)
+                .postImageurl("/test2")
+                .build();
+
+        image3=PostImage.builder()
+                .id(3L)
+                .postImageurl("/test3")
+                .build();
+
+        List<PostImage> images = List.of(image1, image2);
+
+        post1=Post.builder()
+                .id(1L)
+                .content("테스트 게시글 1")
+                .user(user)
+                .images(images)
+                .build();
+        post2 = Post.builder()
+                .id(2L)
+                .content("테스트 게시글 2")
+                .user(user) // 사전에 저장한 유저
+                .likeNum(0)
+                .images(new ArrayList<>())
+                .build();
+
+        // 팔로우 관계 초기화
+        follow1 = Follow.builder()
+                .following(user)
+                .build();
+
+        follow2 = Follow.builder()
+                .following(user2)
+                .build();
+}
+```
+- 테스트 전에, 테스트에 사용될 객체 생성하기. 실제 repository를 사용하는 게 아니라서 db에 저장되지 않아 내가 직접 id 설정해주어야 한다.
+
+```
+@Test
+    @Transactional
+    void 하나의_특정_게시글_조회_테스트(){
+
+        //given
+        Long postId=1L;
+
+        given(postRepository.findById(postId)).willReturn(Optional.of(post1));
+
+        //when
+        Post post=postRepository.findById(post1.getId()).orElseThrow(()-> new IllegalArgumentException("게시글 없음"));
+
+        //then
+        // 게시글 내용 확인
+        assertEquals("테스트 게시글 1", post.getContent());
+        assertEquals("/test1", post.getImages().get(0).getPostImageurl());
+        assertEquals(0, post.getLikeNum());
+
+    }
+```
+
+- `given(postRepository.findById(postId)).willReturn(Optional.of(post1))` : 테스트에서 사용하는 가짜 객체인 postRepository에서 findById 메서드 호출 시 post1을 반환하겠다고 미리 정의
+
+
+### @Transactional
+@Transactional을 사용하게 되면 메서드가 정상적으로 종료되면 트랜잭션을 commit하고, 예외가 발생하면 트랜잭션을 rollback을 하게 된다. 즉, 비정상적인 종료로 인해 일부 작업만 데이터베이스에 반영되는 것을 방지해 데이터 일관성을 유지해준다.
+@Transactional은 하나의 전체 프로세스를 관리하는 특정 서비스 메소드에 거는 게 좋다고 한다.
+
+아래 코드의 예시를 보자.
+
+```
+@Transactional  // updateIsRead보단 하나의 전체 프로세스를 관리하는 특정 서비스 메소드에 @Transactional 거는 게 좋다
+    public List<MessageResponseDto> getMessagesInRoom(Long roomId, Long userId){
+        DmRoom dmRoom=dmRoomRepository.findById(roomId).orElseThrow(()->new IllegalArgumentException("해당 id의 dm방이 없습니다."));
+        userService.findUserById(userId);
+        //해당 유저가 채팅방 나간시간 조회
+        LocalDateTime userLeaveTime=userId.equals(dmRoom.getUser1().getId())?dmRoom.getUser1LeaveTime():dmRoom.getUser2LeaveTime();
+
+        // userLeaveTime이 null이라면(채팅방 나간적 x) 모든 메시지 조회, 아니면 message의 생성시간이 leaveTime 이후인 message들만 조회
+        List<Message> messages=(userLeaveTime==null)?messageRepository.findMessageWithSenderByRoomId(roomId):messageRepository.findMessageWithSenderByRoomIdAndCreatedAtAfter(roomId, userLeaveTime);
+
+        //message의 isRead 필드값 true로 변경+읽은 시간 저장
+        updateIsRead(messages);
+
+        return messages.stream()
+                .map(MessageResponseDto::from)
+                .toList();
+
+    }
+    //message의 isRead 필드값 true로 변경+읽은 시간 저장
+    private void updateIsRead(List<Message> messages){
+        messages.forEach(message->{
+            if(!message.isRead()){
+                message.setRead();}
+        });
+    }
+```
+
+`특정 메시지 방에 존재하는 메시지를 조회하는 메소드` 안에 `message의 isRead 필드값을 true로 변경하고 읽은 시간을 저장`하는 상태 변경 로직이 들어가있다. 이때 `updateIsRead`라는 작은 범위에만 @Transactional을 적용하기보다는, 전체적으로 메시지를 조회하는 서비스 메소드에 @Transactional을 적용하는 것이 더 좋다.
+
+- #### @Transactional(readOnly=true)
+
+조회 메소드에 사용한다. readOnly=true 속성을 사용하면, 트랜잭션 Commit 시 영속성 컨텍스트가 자동으로 flush 되지 않으므로 조회용으로 가져온 Entity의 예상치 못한 수정을 방지할 수 있고, JPA는 해당 트랜잭션 내에서 조회하는 Entity는 조회용임을 인식하고 변경 감지를 위한 Snapshot을 따로 보관하지 않으므로 메모리가 절약되는 이점 또한 존재한다고 한다. 따라서 조회용 메소드에는 이걸 붙여주기!
+
+### Dto
+Request Dto에는 가능한 간단한 애들을 담아야 한다. 만약 RequestDto에 user_id가 아니라 user 객체를 포함하게 된다면 클라이언트는 해당 객체의 모든 필드를 사용해 데이터를 보내야 하므로 번거로워진다. 따라서 user_id와 같이 단순한 필드를 Request Dto에 포함시키면, 클라이언트는 user_id만 넣은 상태로 요청을 보낼 수 있어 작업이 간단해진다.
+```
+Getter
+public class MessageRequestDto {   //Dto에는 되도록 간단한 내용들 담기(user 대신 user_id)
+    private String content;
+    private Long senderId;
+    private Long receiverId; 
+```
+
+만약 User sender, User receiver를 포함하게 된다면 요청을 아래와 같은 형식으로 보내야 해서 매우 번거로워진다.
+```
+{
+  "content": "string",
+  "sender": {
+    "createdAt": "2024-10-07T08:49:07.227Z",
+    "updatedAt": "2024-10-07T08:49:07.227Z",
+    "id": 0,
+    "nickname": "string",
+    "username": "string",
+    "email": "string",
+    "password": "string",
+    "introduce": "string",
+    "profileImageurl": "string",
+    "status": "ACTIVE",
+    "followerCount": 0,
+    "followingCount": 0,
+    "posts": [
+      {
+        "createdAt": "2024-10-07T08:49:07.227Z",
+        "updatedAt": "2024-10-07T08:49:07.227Z",
+        "id": 0,
+        "content": "string",
+        "likeNum": 0,
+        "user": "string",
+        "images": [
+          {
+            "id": 0,
+            "postImageurl": "string",
+            "post": "string"
+          }
+        ]
+      }
+    ],
+    "public": true
+  },
+  "receiver": {
+    "createdAt": "2024-10-07T08:49:07.227Z",
+    "updatedAt": "2024-10-07T08:49:07.227Z",
+    "id": 0,
+    "nickname": "string",
+    "username": "string",
+    "email": "string",
+    "password": "string",
+    "introduce": "string",
+    "profileImageurl": "string",
+    "status": "ACTIVE",
+    "followerCount": 0,
+    "followingCount": 0,
+    "posts": [
+      {
+        "createdAt": "2024-10-07T08:49:07.227Z",
+        "updatedAt": "2024-10-07T08:49:07.227Z",
+        "id": 0,
+        "content": "string",
+        "likeNum": 0,
+        "user": "string",
+        "images": [
+          {
+            "id": 0,
+            "postImageurl": "string",
+            "post": "string"
+          }
+        ]
+      }
+    ],
+    "public": true
+  }
+}
+```
+
+# 3주차
+
+### 정적 팩토리 메소드
+
+객체를 인스턴스화 할 때 직접적으로 생성자를 호출하여 생성하지 않고, 별도의 객체 생성 역할을 하는 클래스의 static 메서드를 통해 간접적으로 객체 생성을 유도하는 방법이다.
+
+```
+    @AllArgsConstructor
+    @Getter
+    public class DmRoomResponseDto {
+        private Long id;
+        private String user2Nickname; //상대방닉네임
+        
+        public static DmRoomResponseDto of(DmRoom room,String otherUserNickname){
+            return new DmRoomResponseDto(room.getId(), otherUserNickname);   //필드 수가 적고 모든 필드를 이용해 객체 만들어서 생성자 이용
+        }
+    }
+
+```
+
+```
+public List<DmRoomResponseDto> getMyAllRooms(Long userId){
+        userService.findUserById(userId); //해당 id의 유저가 존재하는지 ㅔ크
+        //내가 참여한 모든 채팅방 조회
+        List<DmRoom> myRoomList=dmRoomRepository.findRoomsByUserIdOrderByUpdatedAtDesc(userId);
+        //채팅방 리스트 엔티티 -> dto로
+        List<DmRoomResponseDto> rooms=myRoomList.stream()
+                .map(room-> DmRoomResponseDto.of(room,findOtherUser(userId, room).getNickname()))
+                .toList();
+        return rooms;
+    }
+```
+
+- 장점 : 생성 목적에 대한 이름 표현이 가능해 변환될 객체의 특성을 유추하기 쉽다는 점 등 여러 장점이 있다.
+
+- 정적 팩토리 메서드 네이밍 규칙 
+    1) from : 하나의 매개변수를 받아 객체 생성
+    2) of : 여러 매개변수를 받아 객체 생성
+  
+
+### Global Exception
+
+- 사용하는 이유 : Controller 내에서 오류가 발생하면 HTTP Status 코드로 적절한 오류코드를 반환하게 되는데, 그러면 세부적인 서버 예외 정보인 '실제 에러'가 전달되어 클라이언트 측에서 어떤 오류인지 명확하게 이해하기 어려울 수 있다. 따라서 이런 처리를 통해 클라이언트가 이해할 수 있는 명확한 메시지와 상태코드로 오류 응답을 보내기 위해 사용한다.
+
+#### 1. ExceptionCode
+```
+@Getter
+public enum ExceptionCode {
+    NOT_FOUND_USER(HttpStatus.NOT_FOUND, "N001", "해당 id의 유저는 존재하지 않습니다."),
+    NOT_FOUND_POST(HttpStatus.NOT_FOUND, "N002", "해당 id의 게시글은 존재하지 않습니다."),
+    NOT_FOUND_Follow(HttpStatus.NOT_FOUND, "N003", "해당 팔로우 객체는 존재하지 않습니다."),
+    NOT_FOUND_ROOM(HttpStatus.NOT_FOUND, "N004", "해당 id의 채팅방은 존재하지 않습니다."),
+    NOT_FOUND_USER_IN_ROOM(HttpStatus.NOT_FOUND, "N005", "해당 id의 유저가 해당 채팅방에 존재하지 않습니다."),
+    NOT_FOUND_MESSAGE(HttpStatus.NOT_FOUND, "N006", "해당 id의 메시지는 존재하지 않습니다."),
+    NOT_FOUND_COMMENT(HttpStatus.NOT_FOUND, "N007", "해당 id의 댓글은 존재하지 않습니다."),
+    NOT_FOUND_PARENT_COMMENT(HttpStatus.NOT_FOUND, "N008", "해당 id의 부모댓글은 존재하지 않습니다."),
+    NOT_FOUND_POST_LIKE(HttpStatus.NOT_FOUND, "N009", "해당 게시글 좋아요는 존재하지 않습니다."),
+    NOT_FOUND_COMMENT_LIKE(HttpStatus.NOT_FOUND, "N010", "해당 댓글 좋아요는 존재하지 않습니다."),
+
+    NOT_POST_OWNER(HttpStatus.FORBIDDEN, "F001", "게시글 작성자가 아닙니다.");
+
+    private final HttpStatus status;
+    private final String divisionCode;
+    private final String message;
+
+    ExceptionCode(final HttpStatus status, final String divisionCode, final String message) {
+        this.status = status;
+        this.divisionCode = divisionCode;
+        this.message = message;
+    }
+
+}
+
+```
+
+- 여러 예외 상황에 대해 HttpStatus, 코드, 메시지를 enum 형태로 관리한다. 
+
+
+#### 2. 커스텀 예외 클래스 생성 (NotFoundException, ForbiddenException, ..)
+
+```
+public class NotFoundException extends RuntimeException{
+
+    private final ExceptionCode exceptionCode;
+
+    public NotFoundException(final ExceptionCode exceptionCode) {
+        super(exceptionCode.getMessage());
+        this.exceptionCode = exceptionCode;
+    }
+
+    public ExceptionCode getExceptionCode() {
+        return exceptionCode;
+    }
+}
+```
+
+- 사용자 정의 예외 클래스로, 클래스 이름만 봐도 어떤 오류가 발생했는지 알기 쉬워지며 RuntimeException을 상속하도록 구현하였다. 또한 HttpStatus 상태에 따라 커스텀 예외 클래스를 분리하였다. 
+    - cf) Runtime Exception을 상속받은 이유 : Runtime Excepion은 unCheckedException이기에 오류처리를 하지 않아도 컴파일에서 오류가 발생하지 않는다.
+- ExceptionCode를 인자로 받아 예외 발생 시 구체적인 예외 상황에 대한 메시지와 HTTP 상태 코드를 ExceptionCode에서 관리하도록 하였다.
+
+#### 3. ExceptionResponse
+
+```
+public class ExceptionResponse {
+    private final HttpStatus httpStatus;
+    private final String divisionCode;
+    private final String message;
+
+    public ExceptionResponse(HttpStatus httpStatus, String divisionCode, String message) {
+        this.httpStatus = httpStatus;
+        this.divisionCode = divisionCode;
+        this.message = message;
+    }
+
+    //NotFound Exception 응답
+    public static ExceptionResponse of(NotFoundException exception) {
+        ExceptionCode code=exception.getExceptionCode();
+        return new ExceptionResponse(code.getStatus(), code.getDivisionCode(), exception.getMessage());
+    }
+
+    // ForbiddenException 응답
+    public static ExceptionResponse of(ForbiddenException exception) {
+        ExceptionCode code=exception.getExceptionCode();
+        return new ExceptionResponse(code.getStatus(), code.getDivisionCode(), exception.getMessage());
+    }
+}
+```
+
+- 클라이언트에게 보낼 에러 응답의 형식을 지정하는 클래스
+- 사용자 정의 클래스를 인자로 받아 그 예외에 맞는 Http 상태코드, 에러코드, 에러메시지를 일관된 형식으로 응답할 수 있게 해준다.
+- @Getter를 붙여야 GlobalExceptionHandler에서 Response body에 exceptionResponse를 JSON으로 직렬화할 때, getter 메소드를 통해 필드 값을 가져올 수 있다. 이 어노테이션을 적용해야 Postman에서 커스텀 예외 메시지가 응답으로 나타난다.
+
+#### 4. GlobalExceptionHandler
+
+```
+@RestControllerAdvice
+@Slf4j
+public class GlobalExceptionHandler {
+
+    //NotFound Exception
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ExceptionResponse> handleNotFoundException(NotFoundException e){
+        log.error(e.getMessage(),e);  //모든 예외 클래스는 Throwable 클래스를 상속받는다. Throwable 클래스에는 getMessage()라는 메서드가 이미 정의되어있다. 이 메서드는 예외가 발생할 때 생성자에서 전달된 예외 메시지를 반환하는 역할을 하기에 NotFoundException에는 @Geter가 없어도 getMessage() 사용가능 함.
+        final ExceptionResponse response=ExceptionResponse.from(e);
+        return ResponseEntity.status(NOT_FOUND).body(response);
+    }
+
+    //ForbiddenException
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ExceptionResponse> handleForbiddenException(ForbiddenException e){
+        log.error(e.getMessage(),e);
+        final ExceptionResponse response=ExceptionResponse.from(e);
+        return ResponseEntity.status(FORBIDDEN).body(response);
+    }
+}
+```
+
+- `@ControllerAdvice` or `@RestControllerAdvice`와 `@ExceptionHandler` 어노테이션을 기반으로, 전역적으로 컨트롤러에서 발생하는 예외를 한 곳에서 처리하고 일관된 형식의 응답 메시지로 클라이언트에게 예외 내용을 전달하는 기능
+
+- `@ControllerAdvice` vs `@RestControllerAdvice`
+
+    - @ControllerAdvice : @Controller에서 발생한 에러를 도중에 @ControllerAdvice로 선언한 클래스 내에서 이를 캐치하여 Controller 내에서 발생한 에러를 처리할 수 있도록 하는 어노테이션
+
+    - @RestControllerAdvice : @ControllerAdvice와 기능은 같지만, @Controller가 아니라 @RestController에서 발생한 에러를 처리하고 JSON 형식의 응답을 제공해주어 Restful API에서 사용된다.
+    - 우리는 @RestController를 사용하고 있으므로 @RestControllerAdvice를 사용하면 된다.
+- @ExceptionHandler를 통해 어떤 클래스에 대한 처리를 할지 명시하고, 각 예외 클래스에 맞게 예외를 처리하여 클라이언트에게 응답을 보낸다.
+
+#### 5. Service에서 발생한 예외를 Global Exception Handler로 처리하도록 변경
+    @Transactional
+    public PostResponseDto updatePost(PostRequestDto postRequestDto,Long userId){
+        Post target=postRepository.findById(postRequestDto.getId()).orElseThrow(()-> new NotFoundException(ExceptionCode.NOT_FOUND_POST));
+        if(!target.getUser().getId().equals(userId)){
+            throw new ForbiddenException(ExceptionCode.NOT_POST_OWNER);
+        }
+        List<PostImage> images=postImageService.changeToPostImage(postRequestDto.getImages(), target);
+        target.update(postRequestDto, images);
+        return PostResponseDto.from(target);
+    }
+
+- Service에서 발생한 예외가 컨트롤러로 전달되고, 컨트롤러에서 예외가 발생했을 때 Global Exception Handler가 처리하게 된다.
+
+
+### 이미지 업로드 관련
+
+#### postman에서는 form data형식에서 file을 선택하여 이미지 업로드 할 수 있지만, Swagger에서는 별도로 설정을 해주어야 한다.
+` @PutMapping(value="/{postId}/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE) `
+
+#### @ModelAttribute
+이미지파일 업로드 시에는 Content-Type이 **application/json**가 아니라 **multipart/form-data** 이어야 한다. 하지만, @RequestBody는 application/json 형식의 데이터를 처리하므로, multipart/form-data 형식을 처리할 수 없다. 따라서 Swagger나 Postman에서 파일을 업로드하려면 multipart/form-data 형식을 사용해야 하고, 이를 처리하기 위해서는 @RequestBody 대신 **@ModelAttribute**를 사용하여 PostRequestDto를 받아야 한다.
+
+```
+    // 게시글 생성
+    @PostMapping(value="/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)   //Swagger에서 MultipartFile을 받게 하기 위해
+    public ResponseEntity<Void> createPost(@ModelAttribute PostRequestDto postRequestDto, @PathVariable Long userId){
+        postService.createPost(postRequestDto, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+```
+
+### 게시글 수정부분 오류 : "A collection with cascade="all-delete-orphan" was no longer referenced by the owning entity instance"
+게시글 수정 구현할 때 기존에는 Post 엔티티의 images 필드를 새로운 이미지로 교체를 해버리도록 코드를 짰다.
+```
+    @Transactional
+    public PostResponseDto updatePost(PostRequestDto postRequestDto,Long userId){
+        Post target=postRepository.findById(postRequestDto.getId()).orElseThrow(()-> new NotFoundException(ExceptionCode.NOT_FOUND_POST));
+        if(!target.getUser().getId().equals(userId)){
+            throw new ForbiddenException(ExceptionCode.NOT_POST_OWNER);
+        }
+        List<PostImage> images=postImageService.changeToPostImage(postRequestDto.getImages(), target);
+        target.update(postRequestDto, images);
+        return PostResponseDto.from(target);
+    }
+```
+```
+    public void update(PostRequestDto postRequestDto,List<PostImage> images) {
+        this.content=postRequestDto.getContent();
+        this.images=images;
+    }
+```
+그랬더니 `"A collection with cascade="all-delete-orphan" was no longer referenced by the owning entity instance"`라는 오류가 떴다. images는 새로 생성한 애인데, 새로 생성한 친구는 hibernate가 관리하지 않아 문제가 된다고 한다. 따라서 기존의 images를 바꾸고 싶으면 샤로운 list를 만들어서 기존 것과 바꾸지 말고 `기존의 list를 clear 한 후, add` 해주는 식으로 업데이트 해야한다!
+```
+@Transactional
+    public PostResponseDto updatePost(Long postId, Long userId, PostRequestDto postRequestDto){
+        Post target=postRepository.findById(postId).orElseThrow(()-> new NotFoundException(ExceptionCode.NOT_FOUND_POST));
+        //게시글 작성자인지 체크
+        if(!target.getUser().getId().equals(userId)){
+            throw new ForbiddenException(ExceptionCode.NOT_POST_OWNER);
+        }
+
+        List<PostImage> images=postImageService.changeToPostImage(postRequestDto.getImages(), target);
+        
+        target.getImages().clear();
+        target.update(postRequestDto, images);
+        return PostResponseDto.from(target);
+    }
+```
+```
+    public void update(PostRequestDto postRequestDto,List<PostImage> images) {
+        this.content=postRequestDto.getContent();
+        this.images.addAll(images);
+    }
+```
