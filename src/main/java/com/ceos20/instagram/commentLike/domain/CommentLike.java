@@ -1,16 +1,21 @@
 package com.ceos20.instagram.commentLike.domain;
 
+import com.ceos20.instagram.comment.domain.Comment;
 import com.ceos20.instagram.user.domain.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.AccessLevel;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
 
 @Entity
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter @Setter
+@NoArgsConstructor (access = AccessLevel.PROTECTED)
+@Getter
+@EntityListeners(AuditingEntityListener.class) // @CreatedDate를 위한 어노테이션
 public class CommentLike {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,9 +24,21 @@ public class CommentLike {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name ="comment_id")
-    private com.ceos20.instagram.comment.domain.Comment Comment;
+    private Comment comment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name ="user_id")
     private User user;
+
+    @CreatedDate
+    private LocalDateTime createdAt;
+
+    @Builder
+    public CommentLike(Long id, Comment comment, User user, LocalDateTime createdAt){
+        this.id = id;
+        this.comment = comment;
+        this.user = user;
+        this.createdAt = createdAt;
+    }
+
 }
