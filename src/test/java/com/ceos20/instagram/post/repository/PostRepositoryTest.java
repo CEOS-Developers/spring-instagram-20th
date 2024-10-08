@@ -2,6 +2,7 @@ package com.ceos20.instagram.post.repository;
 
 import com.ceos20.instagram.post.domain.Post;
 import com.ceos20.instagram.user.domain.User;
+import com.ceos20.instagram.user.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -77,6 +78,53 @@ public class PostRepositoryTest {
 
         for (Post findPost : findPosts) {
             System.out.println("content: " + findPost.getContent());
+        }
+    }
+
+    @Test
+    @DisplayName("N+1 문제")
+    void findPostLazy() {
+        // given
+        User user1 = User.builder()
+                .username("user1")
+                .nickname("user1")
+                .password("password")
+                .email("user1@naver.com")
+                .build();
+        em.persist(user1);
+
+        User user2 = User.builder()
+                .username("user2")
+                .nickname("user2")
+                .password("password")
+                .email("user2@naver.com")
+                .build();
+        em.persist(user2);
+
+        Post post1 = Post.builder()
+                .author(user1)
+                .content("post1")
+                .build();
+        em.persist(post1);
+
+        Post post2 = Post.builder()
+                .author(user2)
+                .content("post2")
+                .build();
+        em.persist(post2);
+
+        em.flush();
+        em.clear();
+
+        // when
+        System.out.println("=======================query start===========================");
+        List<Post> posts = postRepository.findAllPost();
+
+        // then
+        for (Post post : posts) {
+            System.out.println("post = " + post.getContent());
+            System.out.println("post.getAuthor().getClass() = " + post.getAuthor().getClass());
+            System.out.println("post.getAuthor().getUsername() = " + post.getAuthor().getUsername());
         }
     }
 }

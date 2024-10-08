@@ -2,27 +2,20 @@ package com.ceos20.instagram.postLike.repository;
 
 import com.ceos20.instagram.post.domain.Post;
 import com.ceos20.instagram.postLike.domain.PostLike;
-import jakarta.persistence.EntityManager;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
+import com.ceos20.instagram.user.domain.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
-@Repository
-@RequiredArgsConstructor
-public class PostLikeRepository {
+public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
 
-    public final EntityManager em;
+    Optional<PostLike> findByUserIdAndPostId(Long userId, Long postId);
 
-    // 게시글 좋아요 저장
-    public void save(PostLike postLike) {
-        em.persist(postLike);
-    }
+    List<PostLike> findByPost(Post post);
 
-    // 특정 게시글에 남겨진 좋아요 조회
-    public List<PostLike> findByPost(Post post) {
-        return em.createQuery("select pl from PostLike pl where pl.post = :post", PostLike.class)
-                .setParameter("post", post)
-                .getResultList();
-    }
+    @Query("SELECT pl.user FROM PostLike pl WHERE pl.post.id = :postId")
+    List<User> findUserWhoLikePostByPostId(@Param("postId") Long postId);
 }

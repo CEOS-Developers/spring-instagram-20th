@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
@@ -32,9 +34,9 @@ public class UserRepositoryTest {
 
         // when
         userRepository.save(user);
-        User findUser = userRepository.findById(user.getId());
+        Optional<User> findUser = userRepository.findById(user.getId());
 
         // then
-        assertEquals(user.getId(), findUser.getId());
+        assertEquals(user.getId(), findUser.get().getId());
     }
 }

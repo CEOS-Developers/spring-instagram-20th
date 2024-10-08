@@ -24,4 +24,11 @@ public class PostLike {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;
+
+    public static PostLike toEntity(User user, Post post) {
+        return PostLike.builder()
+                .user(user)
+                .post(post)
+                .build();
+    }
 }

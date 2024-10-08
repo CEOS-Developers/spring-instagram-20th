@@ -4,6 +4,8 @@ import com.ceos20.instagram.post.domain.Post;
 import com.ceos20.instagram.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -21,8 +23,10 @@ public class Comment {
     @Column(name = "comment_id")
     private Long id;
 
+    @NotNull
     private String content;
 
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -37,6 +41,11 @@ public class Comment {
     @JoinColumn(name = "parent_id")
     private Comment parentComment;
 
-    @OneToMany(mappedBy = "parentComment")
+    @Builder.Default
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.REMOVE)
     private List<Comment> childrenComment = new ArrayList<>();
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
 }

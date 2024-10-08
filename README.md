@@ -1,3 +1,5 @@
+## 2주차 - DB 설계, domain 작성하기
+
 ## 📌 인스타그램 기능 설명
 
 DB 모델링을 하기 전에 인스타그램의 주요 기능을 먼저 알아보자!!
@@ -323,7 +325,7 @@ author로 게시글 조회하는 findByAuthor 테스트 코드를 작성했다.
 
 user를 영속성 컨텍스트에 저장하지 않고, post 생성시 author 필드에 참조해서 발생한 에러라고 생각했다.
 
-→ **em.persist(user)**를 통해 객체를 영속성 컨텍스트에 저장하여 에러를 해결했다.
+→ **em.persist(user)** 를 통해 객체를 영속성 컨텍스트에 저장하여 에러를 해결했다.
 
 </br>
 
@@ -569,3 +571,446 @@ orderId가 같은 row가 연관된 orderItem 만큼 생성된다는 문제이다
 distinct 키워드를 사용하면 fetch-join시 발생하는 중복 조회를 막아준다. DB에서 반환되는 결과로 Order는 중복 없이 1개만 존재하게 되고, Order에 연관된 OrderItem을 모두 포함하여 반환된다.
 
 → 이는 DB에서 실제로 row를 합쳐주는 것이 아니고 애플리케이션 레벨에서 중복 제거를 해준다고 한다. (JPA는 결과를 수신한 후, 중복된 Order를 필터링해 최종 결과를 반환함)
+
+----
+## 3주차 - service 작성하기
+
+## 💡 toEntity(), fromEntity() 를 사용한 이유!
+
+DTO에서 `toEntity()` 메서드를 사용하는 것은 서비스 클래스에서 불필요한 엔티티 생성 로직을 DTO 클래스로 이동시켜 코드의 역할을 분리하고 가독성을 높일 수 있다.
+
+→ 서비스 클래스는 비즈니스 로직에만 집중할 수 있다!!
+
+<br/>
+
+```java
+ @Transactional
+  public void saveUser(SaveUserRequest saveUserRequest) {
+
+      User user = User.builder()
+              .username(saveUserRequest.getUsername())
+              .nickname(saveUserRequest.getNickname())
+              .password(saveUserRequest.getPassword())
+              .email(saveUserRequest.getEmail())
+              .build();
+      userRepository.save(user);
+  }
+```
+
+원래 서비스 층에서 builder를 사용하여 객체를 만들었는데.. 서비스 코드가 너무 복잡해 보기 싫었다.
+
+<br/>
+
+```java
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+public class SaveUserRequest {
+
+    private String username;
+    private String nickname;
+    private String password;
+    private String email;
+
+    public User toEntity() {
+        return User.builder()
+                .username(username)
+                .nickname(nickname)
+                .password(password)
+                .email(email)
+                .build();
+    }
+}
+```
+
+```java
+@Transactional
+public void saveUser(SaveUserRequest saveUserRequest) {
+
+    User user = saveUserRequest.toEntity();
+    userRepository.save(user);
+}
+```
+
+SaveUserRequest DTO 내에 toEntity()라는 메서드를 통해 dto를 만들어 리턴해주었다. 서비스 코드에서는 toEntity() 메서드만 호출하면 바로 dto를 받을 수 있어 코드가 깔끔해진다.
+
+<br/>
+
+---
+
+## 💡 Transactional(readOnly = true)를 사용한 이유!
+
+
+### Transactional은 어떤 경우에 사용하는걸까?
+
+```java
+public void saveParent() {
+    saveMom();
+    saveDad();
+}
+
+private void saveMom() {
+    Member mom = Member.builder()
+        .name("엄마")
+        .build();
+    
+    memberRepository.save(mom);
+}
+
+private void saveDad() {
+    Member dad = Member.builder()
+        .name("아빠")
+        .build();
+    
+    memberRepository.save(dad);
+}
+```
+
+부모님 정보를 저장하는 saveParent()라는 메서드가 있다고 해보자.
+
+saveMom() 을 먼저 호출하고 후에 saveDad()를 호출한다.
+
+만약 saveDad() 메서드에 오류가 발생하더라도 mom 데이터는 이미 DB에 저장되어있어 데이터의 일관성이 깨질 수 있다.
+
+우리는 mom, dad 중 하나라도 에러가 나면 진행되었던 작업을 롤백 해주고, 성공하면 모두 저장해주고 싶다.
+
+→ 이렇게 여러 작업을 하나의 작업으로 묶고 싶을 때 **transaction** 을 사용하면 된다. 
+
+<br/>
+
+```java
+@Transactional
+public void saveParent() {
+    saveMom();
+    saveDad();
+}
+```
+
+이렇게 @Transactional 어노테이션을 써주면 saveMom()과 saveDad()를 하나의 작업으로 묶어줄 수 있다!
+
+<br/>
+
+### 💡 Transactional(readOnly = true)의 장점
+
+Transactional 어노테이션에 readOnly 옵션을 설정할 수 있다. 
+
+이는 JPA 영속성 컨텍스트가 수행하는 **변경감지(Dirty Checking)** 와 관련이 있다.
+
+<br/>
+
+<img width="723" alt="스크린샷 2024-09-28 오후 8 04 12" src="https://github.com/user-attachments/assets/c02000a0-c1d9-41d0-b9f7-6c31b99c7e9d">
+
+JPA는 영속성 컨텍스트에 엔티티를 보관할 때 최초 엔티티 상태를 저장하고 있다. → 이를 snapshot이라고 한다.
+
+트랜잭션이 커밋될때, 영속성 컨텍스트에 저장된 엔티티와 스냅샷을 비교하여 변경 사항을 확인하고, 만약 변경사항이 있다면 **UPDATE 쿼리**를 쓰기 지연 SQL 저장소에 저장한다. 
+
+<br/>
+
+**근데 만약 Transactional(readOnly = true)를 설정해주면**
+
+JPA가 해당 트랜잭션이 읽기 전용임을 인지하고, 트랜잭션 커밋 시에 자동으로 flush()를 날리지 않는다.
+
+만약, 엔티티의 상태가 변한다해도 Dirty Checking을 하지 않는다.
+
+→ 따라서 조회용으로 가져온 엔티티의 예상치 못한 수정을 방지할 수 있다.
+
+PostService 코드를 한번 보자
+
+```java
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class PostService {
+
+		// ...
+
+    // 게시글 생성
+    @Transactional
+    public void createPost(CreatePostRequest createPostRequest, User user) {
+
+        // 글 저장
+        Post post = Post.toEntity(createPostRequest, user);
+        postRepository.save(post);
+
+        // 이미지 저장
+        List<Image> images = createPostRequest.getImages().stream()
+                .map(image -> Image.toEntity(post, image))
+                .collect(Collectors.toList());
+        imageRepository.saveAll(images);
+    }
+}
+```
+
+기본적으로 Transactional(readOnly = true)로 설정해주었고, 단순 조회가 아닌 경우에는 메서드 위에 @Transactional 어노테이션을 붙였다.
+
+이 코드에서도 createPost()라는 메서드 안에서 save(Post)와 saveAll(images)로 두개의 작업을 하는데 둘 중 하나라도 에러가 나면 묶어서 롤백해야하기 때문에 트랜잭션이 꼭 필요하다.
+
+<br/>
+
+---
+
+## 💡 N + 1 문제와 fetch-join 직접 해보기
+
+**전체 post와 각 post의 author를 출력하는 테스트 코드를 작성해봤다.**
+
+```java
+@Test
+@DisplayName("N+1 문제")
+void findPostLazy() {
+    // given
+    User user1 = User.builder()
+            .username("user1")
+            .nickname("user1")
+            .password("password")
+            .email("user1@naver.com")
+            .build();
+    em.persist(user1);
+
+    User user2 = User.builder()
+            .username("user2")
+            .nickname("user2")
+            .password("password")
+            .email("user2@naver.com")
+            .build();
+    em.persist(user2);
+
+    Post post1 = Post.builder()
+            .author(user1)
+            .content("post1")
+            .build();
+    em.persist(post1);
+
+    Post post2 = Post.builder()
+            .author(user2)
+            .content("post2")
+            .build();
+    em.persist(post2);
+
+    em.flush();
+    em.clear();
+
+    // when
+    System.out.println("=======================query start===========================");
+    List<Post> posts = postRepository.findAll();
+
+    // then
+    for (Post post : posts) {
+        System.out.println("post = " + post.getContent());
+        System.out.println("post.getAuthor().getClass() = " + post.getAuthor().getClass());
+        System.out.println("post.getAuthor().getUsername() = " + post.getAuthor().getUsername());
+    }
+}
+```
+
+<br/>
+
+### 1) 즉시로딩(EAGER)인 경우
+
+```java
+@Entity
+@Builder
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Post {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "post_id")
+    private Long id;
+
+    private String content;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "author_id")
+    private User author;
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
+}
+```
+
+Post 엔티티에서 author와 ManyToOne 관계를 가지고, 기본 fetch type인 **즉시로딩(EAGER)** 로 설정해주었다.
+
+<img width="710" alt="스크린샷 2024-09-28 오후 12 37 55" src="https://github.com/user-attachments/assets/0db7c6fd-d445-42f1-a908-298862d4fbc6">
+
+<img width="698" alt="스크린샷 2024-09-28 오후 12 40 06" src="https://github.com/user-attachments/assets/ef42cd6d-6d2e-4c1a-a40a-dbd249b5cee5">
+
+테스트 코드를 돌려보면 post를 조회할때 author(user)도 함께 조회하는 것을 확인할 수 있다.
+
+<br/>
+
+🚨 **하지만 나는 post만 조회하고 싶었는데 user 조회 쿼리도 추가로 나가면…손해 아닌가요?**
+
+**만약 post가 50개 있다면, 전체 post를 조회하는 쿼리 1번 + 각 post의 author를 조회하는 쿼리 50번이 추가로 나갈 것이다 (N + 1 문제)**
+
+**→ Post를 조회할때 user를 조회하지 않으면 되는거 아닌가요? 즉, LAZY 로딩을 하면 되는거 아닌가요?**
+
+<br/>
+
+### 2) 지연로딩(LAZY)인 경우
+
+이번엔 지연로딩으로 설정하고 다시 확인해보자
+
+```java
+@Entity
+@Builder
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Post {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "post_id")
+    private Long id;
+
+    private String content;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id")
+    private User author;
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
+}
+```
+
+일단 Post 엔티티를 보면 author와 ManyToOne 관계를 가지고 있고, 지연로딩(LAZY)임을 확인 할 수 있다.
+
+<br/>
+
+<img width="683" alt="스크린샷 2024-09-28 오전 9 33 05" src="https://github.com/user-attachments/assets/039f2f42-e4ef-42b5-a657-c31b0f5668da">
+
+`postRepository.findAll()` 부분이다.
+
+전체 post를 불러오는 쿼리 1번이 호출된 것을 확인할 수 있다.
+
+<br/>
+
+<img width="809" alt="스크린샷 2024-09-28 오전 9 33 30" src="https://github.com/user-attachments/assets/09c5106e-dc45-459d-9105-f9de7116a537">
+
+post의 author가 지연로딩으로 설정되어 있어 `getAuthor()`를 했을 때는 proxy 객체가 들어가고,
+
+`getAuthor().getUsername()`으로 author를 실제 사용할 때 쿼리가 나가는 것을 확인할 수 있다.
+
+→ 첫번째 post에 대한 author를 조회하는 쿼리가 1번 나갔다.
+
+<br/>
+
+<img width="819" alt="스크린샷 2024-09-28 오전 9 33 56" src="https://github.com/user-attachments/assets/8d5d0386-1cc0-4fcb-a70e-36a319e20242">
+
+→ 두번째 post에 대한 author를 조회하는 쿼리가 1번 나갔다.
+
+<br/>
+
+🚨 **N번의 쿼리가 언제 나가냐에 차이지 지연로딩에도 N + 1 문제가 발생 함을 볼 수 있다. 그럼 어떻게 해결해야 하나요?? → SQL상에서 join이 나가도록 하면 된다.**
+
+<br/>
+
+### 3) fetch-join 적용
+
+**PostRepository**
+
+```java
+@Query("SELECT p FROM Post p LEFT JOIN fetch p.author")
+List<Post> findAllPost();
+```
+
+left join을 통해 post와 user를 join 해줬다.
+
+<br/>
+
+<img width="535" alt="스크린샷 2024-09-28 오후 1 41 23" src="https://github.com/user-attachments/assets/483a3c08-c5fa-4bb0-abec-7a04af7ada5a">
+
+이렇게 한번의 쿼리로 post, user 모두 조회할 수 있다. → N + 1 문제 해결
+
+<br/>
+
+## 🚨 Service 계층 Test Code 작성하기
+
+FollowService의 테스트 코드를 보자
+
+```java
+@SpringBootTest
+public class FollowServiceTest {
+
+    @Mock
+    private FollowRepository followRepository;
+    @InjectMocks
+    private FollowService followService;
+    
+    // ...
+    
+ }
+```
+
+일단 우리는 Service 계층의 **단위 테스트 코드** 를 작성할 것이다.
+
+따라서 service에서 사용하는 repository는 mock을 통해 모의 객체로 생성해줘야 한다.
+
+- `@Mock` : @Mock으로 선언된 필드는 Mockito가 해당 클래스의 모의 객체를 생성하여 주입한다.
+    - 모의 객체이므로 해당 클래스의 예상 동작을 우리가 직접 작성해줘야 한다.
+- `@InjectMocks` : followService는 @InjectMocks 어노테이션을 통해 모의 객체들을 주입받을 수 있다.
+
+<br/>
+
+```java
+ 		private User user;
+    private User follower1;
+    private User follower2;
+
+    @BeforeEach
+    void setUp() {
+        user = User.builder()
+                .id(1L)
+                .nickname("user")
+                .password("password")
+                .build();
+
+        follower1 = User.builder()
+                .id(2L)
+                .nickname("follower1")
+                .password("password")
+                .build();
+
+        follower2 = User.builder()
+                .id(3L)
+                .nickname("follower2")
+                .password("password")
+                .build();
+    }
+```
+
+- 테스트 코드 시작 전 객체들을 준비해줬다. (내가 id도 직접 정해주면 된다)
+
+  <br/>
+
+```java
+    @Test
+    @DisplayName("나를 팔로우하는 사람들 반환 테스트")
+    void getFollowerTest() {
+        // given
+        List<User> followers = Arrays.asList(follower1, follower2);
+        when(followRepository.findByToUser(user)).thenReturn(followers);
+
+        // when
+        List<GetFollowerResponse> responses = followService.getFollower(user);
+
+        // then
+        assertEquals(2, responses.size());
+        assertEquals(follower1.getId(), responses.get(0).getUserId());
+        assertEquals(follower2.getId(), responses.get(1).getUserId());
+    }
+```
+
+- `when(followRepository.findByToUser(user)).thenReturn(followers)` 을 통해 모의 객체인 followRepository의 예상 동작을 정의한다.
+    - 'followRepository의 findByToUser메서드의 매개변수로 user가 넘어오면, followers를 반환해라' 라는 의미이다.
