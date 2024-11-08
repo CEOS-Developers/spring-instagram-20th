@@ -1,8 +1,8 @@
 package com.ceos20.instagram.post.dto;
 
+import com.ceos20.instagram.comment.domain.Comment;
 import com.ceos20.instagram.post.domain.Post;
 import com.ceos20.instagram.post.domain.PostImage;
-import com.ceos20.instagram.user.domain.User;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -14,15 +14,21 @@ import java.util.List;
 @Getter
 @ToString
 public class PostResponseDto {
-    private Long id;
     private String content;
-    private User writer;
+    private String nickname;
     private LocalDateTime createdAt;
     private Long likeCount;
     private Long commentCount;
-    private List<PostImage> images;
+    private List<String> imageUrls;
 
-
-
+    public static PostResponseDto of(final Post post, List<String> imageUrls) {
+        return PostResponseDto.builder()
+                .content(post.getContent())
+                .nickname(post.getNickname())
+                .createdAt(post.getCreatedAt())
+                .likeCount(post.getLikeCount())
+                .commentCount(post.getCommentCount())
+                .imageUrls(imageUrls)
+                .build();
+    }
 }
-

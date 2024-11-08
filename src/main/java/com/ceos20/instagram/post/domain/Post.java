@@ -44,6 +44,9 @@ public class Post {
     @Builder.Default
     private Long commentCount = 0L;
 
+    public String getNickname() {
+        return writer.getNickname();
+    }
 
     public void increaseLikeCount() {
         likeCount++;

@@ -11,6 +11,7 @@ import lombok.*;
 @Getter
 @ToString
 public class PostLikeDto {
+    private Long id;
     private Post post;
     private User user;
 

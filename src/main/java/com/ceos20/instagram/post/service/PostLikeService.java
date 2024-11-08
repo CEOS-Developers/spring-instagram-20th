@@ -22,6 +22,11 @@ public class PostLikeService {
     }
 
     public  void deleteLike(PostLikeDto postLikeDto) {
+        User user = postLikeDto.getUser();
+        Post post = postLikeDto.getPost();
+
+        post.decreaseLikeCount();;
+        postLikeRepository.deleteById(postLikeDto.getId());
 
     }
 
