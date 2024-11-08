@@ -1,7 +1,6 @@
 package com.ceos20.instagram.message.dto;
 
 import com.ceos20.instagram.message.domain.Message;
-import com.ceos20.instagram.user.domain.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

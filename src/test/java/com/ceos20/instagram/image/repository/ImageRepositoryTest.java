@@ -2,7 +2,7 @@ package com.ceos20.instagram.image.repository;
 
 import com.ceos20.instagram.image.domain.Image;
 import com.ceos20.instagram.post.domain.Post;
-import com.ceos20.instagram.user.domain.User;
+import com.ceos20.instagram.member.domain.Member;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,15 +31,15 @@ public class ImageRepositoryTest {
     @DisplayName("특정 게시글의 이미지 조회 테스트")
     public void findByPostTest() {
         // given
-        User user = User.builder()
+        Member member = Member.builder()
                 .username("user")
                 .nickname("user")
                 .password("password")
                 .build();
-        em.persist(user);
+        em.persist(member);
 
         Post post = Post.builder()
-                .author(user)
+                .author(member)
                 .content("post")
                 .build();
         em.persist(post);

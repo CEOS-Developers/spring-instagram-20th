@@ -1,7 +1,7 @@
 package com.ceos20.instagram.postLike.domain;
 
 import com.ceos20.instagram.post.domain.Post;
-import com.ceos20.instagram.user.domain.User;
+import com.ceos20.instagram.member.domain.Member;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,16 +18,16 @@ public class PostLike {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "member_id")
+    private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;
 
-    public static PostLike toEntity(User user, Post post) {
+    public static PostLike toEntity(Member member, Post post) {
         return PostLike.builder()
-                .user(user)
+                .member(member)
                 .post(post)
                 .build();
     }

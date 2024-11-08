@@ -4,7 +4,7 @@
 
 DB 모델링을 하기 전에 인스타그램의 주요 기능을 먼저 알아보자!!
 
-<img width="1293" alt="스크린샷 2024-09-20 오전 12 32 29" src="https://github.com/user-attachments/assets/67b380bb-23ce-420e-871c-cbf28e573905">
+<img width="1293" alt="스크린샷 2024-09-20 오전 12 32 29" src="https://github.com/member-attachments/assets/67b380bb-23ce-420e-871c-cbf28e573905">
 
 사용자는 사진과 함께 글을 작성하여 게시글을 올릴 수 있다. 이때, 사진은 여러장 올릴 수 있으며 최대 10장 까지 가능하다.
 
@@ -13,14 +13,14 @@ DB 모델링을 하기 전에 인스타그램의 주요 기능을 먼저 알아�
 </br>
 
 
-<img width="532" alt="스크린샷 2024-09-20 오전 12 37 51" src="https://github.com/user-attachments/assets/a358ec27-c786-4736-b995-708558080c5a">
+<img width="532" alt="스크린샷 2024-09-20 오전 12 37 51" src="https://github.com/member-attachments/assets/a358ec27-c786-4736-b995-708558080c5a">
 
 각 사용자들은 1대 1 메시지를 주고 받을 수 있다.
 
 </br>
 
 
-<img width="724" alt="스크린샷 2024-09-20 오전 1 21 52" src="https://github.com/user-attachments/assets/3031ee35-3182-40f8-8746-71f80ea74573">
+<img width="724" alt="스크린샷 2024-09-20 오전 1 21 52" src="https://github.com/member-attachments/assets/3031ee35-3182-40f8-8746-71f80ea74573">
 
 각 사용자는 팔로워와 팔로우를 가진다.
 
@@ -33,7 +33,7 @@ DB 모델링을 하기 전에 인스타그램의 주요 기능을 먼저 알아�
 
 위의 기능을 바탕으로 ERD를 설계해봤다.
 
-![instagram](https://github.com/user-attachments/assets/9affb881-463c-455c-a07a-18f8202488be)
+![instagram](https://github.com/member-attachments/assets/9affb881-463c-455c-a07a-18f8202488be)
 
 - User (사용자)
     - 회원가입/로그인에 필요한 기본적인 정보(이름, 닉네임, 이메일, 비밀번호 등)를 가진다.
@@ -80,7 +80,7 @@ JPA는 ORM을 지원하는 API인데, 자바 객체를 자동으로 DB 테이블
 
 도메인에 작성한 User 엔티티를 살펴보자!
 
-<img width="550" alt="스크린샷 2024-09-20 오전 1 08 24" src="https://github.com/user-attachments/assets/354cd5eb-2830-4393-84fd-924225c0dd26">
+<img width="550" alt="스크린샷 2024-09-20 오전 1 08 24" src="https://github.com/member-attachments/assets/354cd5eb-2830-4393-84fd-924225c0dd26">
 
 - @Entity 어노테이션을 사용하여 JPA에서 해당 클래스가 데이터베이스 테이블과 매핑되는 엔티티임을 나타낼 수 있다.
 - @All/NoArgsConstructor 를 사용하여 생성자를 자동으로 생성해줬다.
@@ -122,7 +122,7 @@ JPA는 데이터베이스에서 값을 읽어오거나, 새 데이터를 삽입�
 
 이 어노테이션은 access 인자를 통해 접근 범위를 제어할 수 있다고 한다.
 
-<img width="589" alt="스크린샷 2024-09-20 오전 2 14 27" src="https://github.com/user-attachments/assets/52f9499b-1d1c-4bd3-a1b0-47b7e33978e8">
+<img width="589" alt="스크린샷 2024-09-20 오전 2 14 27" src="https://github.com/member-attachments/assets/52f9499b-1d1c-4bd3-a1b0-47b7e33978e8">
 
 AccessLevel의 기본 값이 PUBLIC 이지만, PROTECTED로 바꾸는 것이 좋다.
 
@@ -176,7 +176,7 @@ Repository를 어떻게 구현할 수 있을까?
 다음과 같이 persist를 호출하면 객체를 영속화 시킬 수 있다.
 
 ```java
-em.persist(user);    // user 영속화
+em.persist(member);    // member 영속화
 ```
 
 </br>
@@ -187,7 +187,7 @@ persist를 하면 영속성 컨텍스트의 1차 캐시에 엔티티가 저장�
 
 → 따라서 우리는 영속화만 시켜주면 트랜잭션 커밋 시점에 자동으로 DB에 쿼리를 전송할 수 있다.
 
-<img width="748" alt="스크린샷 2024-09-20 오후 2 34 54" src="https://github.com/user-attachments/assets/b0e96904-dfa5-4e9c-b6dc-d15c60b99743">
+<img width="748" alt="스크린샷 2024-09-20 오후 2 34 54" src="https://github.com/member-attachments/assets/b0e96904-dfa5-4e9c-b6dc-d15c60b99743">
 
 **그런데 모든 쿼리가 쓰기 지연 SQL 저장소에 저장되나요?**
 
@@ -212,10 +212,10 @@ persist를 하면 영속성 컨텍스트의 1차 캐시에 엔티티가 저장�
 
 ⬇️ EntityManager를 사용해 PostRepository를 구현한 코드이다.
 
-<img width="826" alt="스크린샷 2024-09-20 오후 12 35 05" src="https://github.com/user-attachments/assets/0bac111b-6539-45fd-b6ef-d16d67035b06">
+<img width="826" alt="스크린샷 2024-09-20 오후 12 35 05" src="https://github.com/member-attachments/assets/0bac111b-6539-45fd-b6ef-d16d67035b06">
 
 - DB에 저장될 객체를 persist 해주었다
-- user 기준으로 조회하는 쿼리를 createQuery를 사용하여 직접 작성해줬다.
+- member 기준으로 조회하는 쿼리를 createQuery를 사용하여 직접 작성해줬다.
 
 </br>
 
@@ -242,47 +242,47 @@ public class PostRepositoryTest {
 		@DisplayName("author로 게시글 조회 테스트")
 		void findByAuthorTest() throws Exception {
 		    // given
-		    User user1 = User.builder()
-		            .username("user1")
-		            .nickname("user1")
+		    User member1 = User.builder()
+		            .username("member1")
+		            .nickname("member1")
 		            .password("password")
 		            .build();
-		    em.persist(user1);
+		    em.persist(member1);
 		
-		    User user2 = User.builder()
-		            .username("user2")
-		            .nickname("user2")
+		    User member2 = User.builder()
+		            .username("member2")
+		            .nickname("member2")
 		            .password("password")
 		            .build();
-		    em.persist(user2);
+		    em.persist(member2);
 		
-		    User user3 = User.builder()
-		            .username("user3")
-		            .nickname("user3")
+		    User member3 = User.builder()
+		            .username("member3")
+		            .nickname("member3")
 		            .password("password")
 		            .build();
-		    em.persist(user3);
+		    em.persist(member3);
 		
 		    Post post1 = Post.builder()
 		            .content("user1이 작성한 post1")
-		            .author(user1)
+		            .author(member1)
 		            .build();
 		    em.persist(post1);
 		
 		    Post post2 = Post.builder()
 		            .content("user1이 작성한 post2")
-		            .author(user1)
+		            .author(member1)
 		            .build();
 		    em.persist(post2);
 		
 		    Post post3 = Post.builder()
 		            .content("user2이 작성한 post3")
-		            .author(user2)
+		            .author(member2)
 		            .build();
 		    em.persist(post3);
 		
 		    // when
-		    List<Post> findPosts = postRepository.findByAuthor(user1);
+		    List<Post> findPosts = postRepository.findByAuthor(member1);
 		
 		    // then
 		    assertEquals(2, findPosts.size());
@@ -296,14 +296,14 @@ public class PostRepositoryTest {
 
 author로 게시글 조회하는 findByAuthor 테스트 코드를 작성했다.
 
-사용자 user1, 2, 3을 생성하고, user1이 post1,2를 user2가 post3을 작성하도록 해줬다.
+사용자 member1, 2, 3을 생성하고, user1이 post1,2를 user2가 post3을 작성하도록 해줬다.
 
 → findByAuthor에 user1을 넘겨줬을때 post1, 2를 잘 찾아오는지 확인해보자!
 
 </br>
 
 
-<img width="1246" alt="스크린샷 2024-09-20 오전 11 16 43" src="https://github.com/user-attachments/assets/4a846e94-1885-4b2e-a009-32ec3c604729">
+<img width="1246" alt="스크린샷 2024-09-20 오전 11 16 43" src="https://github.com/member-attachments/assets/4a846e94-1885-4b2e-a009-32ec3c604729">
 
 두 게시글이 잘 조회되는 것을 확인할 수 있다!
 
@@ -313,7 +313,7 @@ author로 게시글 조회하는 findByAuthor 테스트 코드를 작성했다.
 ### 🚨 test code 작성하며 만난 오류
 
 ```
- org.hibernate.TransientObjectException: object references an unsaved transient instance - save the transient instance before flushing: com.ceos20.instagram.user.domain.User
+ org.hibernate.TransientObjectException: object references an unsaved transient instance - save the transient instance before flushing: com.ceos20.instagram.member.domain.Memberer
 ```
 
 처음에는 em.persist() 코드를 작성해주지 않아 위와 같은 오류가 발생했다.
@@ -325,7 +325,7 @@ author로 게시글 조회하는 findByAuthor 테스트 코드를 작성했다.
 
 user를 영속성 컨텍스트에 저장하지 않고, post 생성시 author 필드에 참조해서 발생한 에러라고 생각했다.
 
-→ **em.persist(user)** 를 통해 객체를 영속성 컨텍스트에 저장하여 에러를 해결했다.
+→ **em.persist(member)** 를 통해 객체를 영속성 컨텍스트에 저장하여 에러를 해결했다.
 
 </br>
 
@@ -365,13 +365,13 @@ Spring Data JPA는 JPA를 더 쉽게 사용할 수 있도록 하는 spring frame
 
 </br>
 
-<img width="849" alt="스크린샷 2024-09-21 오후 4 01 46" src="https://github.com/user-attachments/assets/df8801e6-5119-437c-a641-0f6a26e4157d">
+<img width="849" alt="스크린샷 2024-09-21 오후 4 01 46" src="https://github.com/member-attachments/assets/df8801e6-5119-437c-a641-0f6a26e4157d">
 
 기존에는 캐릭터 이름 기준으로 캐릭터 리스트를 반환하려면 내가 직접 쿼리 문을 작성해서 데이터베이스와 상호작용 했는데
 
 </br>
 
-<img width="645" alt="스크린샷 2024-09-21 오후 4 03 11" src="https://github.com/user-attachments/assets/0efb5b3c-e104-4340-b6c8-ff487c5836a9">
+<img width="645" alt="스크린샷 2024-09-21 오후 4 03 11" src="https://github.com/member-attachments/assets/0efb5b3c-e104-4340-b6c8-ff487c5836a9">
 
 JpaRepository를 상속 받으면 별도로 구현할 필요 없이 메서드 이름에 따라 쿼리가 자동으로 생성되어 데이터베이스에서 데이터를 조회할 수 있다.
 
@@ -389,7 +389,7 @@ JpaRepository는 제네릭 인터페이스이기 때문에, 엔티티 클래스�
 
 ### 프록시(Proxy)
 
-<img width="466" alt="스크린샷 2024-09-21 오후 4 37 48" src="https://github.com/user-attachments/assets/8a94958b-f44f-462c-94e8-ff6097cbb85b">
+<img width="466" alt="스크린샷 2024-09-21 오후 4 37 48" src="https://github.com/member-attachments/assets/8a94958b-f44f-462c-94e8-ff6097cbb85b">
 
 CharacterRepository를 출력해보면 proxy라고 출력 됨을 확인할 수 있다.
 
@@ -483,14 +483,14 @@ EntityManager는 기본적으로 프록시 객체로 제공된다.
 
 **📌 N+1 문제**
 
-<img width="704" alt="스크린샷 2024-09-21 오후 5 37 30" src="https://github.com/user-attachments/assets/edc0305c-03ce-4697-adba-4c99e87817d5">
+<img width="704" alt="스크린샷 2024-09-21 오후 5 37 30" src="https://github.com/member-attachments/assets/edc0305c-03ce-4697-adba-4c99e87817d5">
 
 (Order의 참조된 필드는 LAZY Loading으로 설정됨)
 
 </br>
 
 
-<img width="707" alt="스크린샷 2024-09-21 오후 5 37 50" src="https://github.com/user-attachments/assets/7f9b7a40-1367-45a7-8d99-4af1c99e28d2">
+<img width="707" alt="스크린샷 2024-09-21 오후 5 37 50" src="https://github.com/member-attachments/assets/7f9b7a40-1367-45a7-8d99-4af1c99e28d2">
 
 위와 같은 코드가 있다고 해보자.
 
@@ -515,7 +515,7 @@ findAllByString으로 Order를 조회해오면 **조회 쿼리가 1번** 발생�
 
 연관된 엔티티까지 함께 조회할 수 있도록 하는 쿼리 방법이다. 
 
-<img width="525" alt="스크린샷 2024-09-21 오후 5 53 00" src="https://github.com/user-attachments/assets/ea99392b-cdad-4398-b53f-9b7f654ed3a0">
+<img width="525" alt="스크린샷 2024-09-21 오후 5 53 00" src="https://github.com/member-attachments/assets/ea99392b-cdad-4398-b53f-9b7f654ed3a0">
 
 
 사진에서 볼 수 있듯이 
@@ -531,7 +531,7 @@ join된 테이블을 조회하므로 딱 한번의 쿼리를 날려 팀A와 소�
 
 위의 Order 예시를 fetch-join으로 수정해보면
 
-<img width="702" alt="스크린샷 2024-09-21 오후 5 48 30" src="https://github.com/user-attachments/assets/de97da02-d2c7-4385-8457-da5f9de93ee5">
+<img width="702" alt="스크린샷 2024-09-21 오후 5 48 30" src="https://github.com/member-attachments/assets/de97da02-d2c7-4385-8457-da5f9de93ee5">
 
 order를 조회할 때 한 번의 query로 member, delivery를 가져와 select 절에 넣어 한 번에 조회할 것이다.
 
@@ -540,7 +540,7 @@ order를 조회할 때 한 번의 query로 member, delivery를 가져와 select 
 
 실제로 쿼리문을 출력해보면
 
-<img width="306" alt="스크린샷 2024-09-21 오후 5 51 55" src="https://github.com/user-attachments/assets/e1cf2934-fd35-4bf3-b4ab-8ad2df85ac6c">
+<img width="306" alt="스크린샷 2024-09-21 오후 5 51 55" src="https://github.com/member-attachments/assets/e1cf2934-fd35-4bf3-b4ab-8ad2df85ac6c">
 
 한번의 쿼리로 모두 조회된 것을 확인할 수 있다!!
 
@@ -549,13 +549,13 @@ order를 조회할 때 한 번의 query로 member, delivery를 가져와 select 
 
 **하지만 fetch-join을 사용할 때는 주의할 점이 있다!**
 
-<img width="498" alt="스크린샷 2024-09-21 오후 6 02 30" src="https://github.com/user-attachments/assets/0bc9379a-2b8c-401b-914e-7dda194799f5">
+<img width="498" alt="스크린샷 2024-09-21 오후 6 02 30" src="https://github.com/member-attachments/assets/0bc9379a-2b8c-401b-914e-7dda194799f5">
 
 만약 Order가 OrderItem이라는 엔티티를 참조하고 있다고 해보자. order와 orderItem에는 위와 같이 데이터가 들어가있다.
 
 orderId가 4인 order에 orderItem 6, 7이 있다. orderId 4를 조회하려면 1 + 2 번의 쿼리가 발생하여 fetch-join을 통해 쿼리를 최적화 할 것이다.
 
-<img width="855" alt="스크린샷 2024-09-21 오후 6 04 47" src="https://github.com/user-attachments/assets/a7cbec7a-742c-4d48-8f27-a6e86630f53d">
+<img width="855" alt="스크린샷 2024-09-21 오후 6 04 47" src="https://github.com/member-attachments/assets/a7cbec7a-742c-4d48-8f27-a6e86630f53d">
 
 join된 테이블을 보면 fetch-join의 문제점을 알 수 있는데
 
@@ -564,7 +564,7 @@ orderId가 같은 row가 연관된 orderItem 만큼 생성된다는 문제이다
 </br>
 
 
-<img width="702" alt="스크린샷 2024-09-21 오후 6 08 12" src="https://github.com/user-attachments/assets/ca22bd35-aafa-4df3-8f0f-e90bb6ce0907">
+<img width="702" alt="스크린샷 2024-09-21 오후 6 08 12" src="https://github.com/member-attachments/assets/ca22bd35-aafa-4df3-8f0f-e90bb6ce0907">
 
 이를 해결하기 위해 **distinct** 키워드를 사용한다.
 
@@ -585,15 +585,15 @@ DTO에서 `toEntity()` 메서드를 사용하는 것은 서비스 클래스에�
 
 ```java
  @Transactional
-  public void saveUser(SaveUserRequest saveUserRequest) {
+  public void saveUser(SaveUserRequest saveMemberRequest) {
 
-      User user = User.builder()
-              .username(saveUserRequest.getUsername())
-              .nickname(saveUserRequest.getNickname())
-              .password(saveUserRequest.getPassword())
-              .email(saveUserRequest.getEmail())
+      User member = User.builder()
+              .username(saveMemberRequest.getUsername())
+              .nickname(saveMemberRequest.getNickname())
+              .password(saveMemberRequest.getPassword())
+              .email(saveMemberRequest.getEmail())
               .build();
-      userRepository.save(user);
+      memberRepository.save(member);
   }
 ```
 
@@ -625,10 +625,10 @@ public class SaveUserRequest {
 
 ```java
 @Transactional
-public void saveUser(SaveUserRequest saveUserRequest) {
+public void saveUser(SaveUserRequest saveMemberRequest) {
 
-    User user = saveUserRequest.toEntity();
-    userRepository.save(user);
+    User member = saveMemberRequest.toEntity();
+    memberRepository.save(member);
 }
 ```
 
@@ -698,7 +698,7 @@ Transactional 어노테이션에 readOnly 옵션을 설정할 수 있다.
 
 <br/>
 
-<img width="723" alt="스크린샷 2024-09-28 오후 8 04 12" src="https://github.com/user-attachments/assets/c02000a0-c1d9-41d0-b9f7-6c31b99c7e9d">
+<img width="723" alt="스크린샷 2024-09-28 오후 8 04 12" src="https://github.com/member-attachments/assets/c02000a0-c1d9-41d0-b9f7-6c31b99c7e9d">
 
 JPA는 영속성 컨텍스트에 엔티티를 보관할 때 최초 엔티티 상태를 저장하고 있다. → 이를 snapshot이라고 한다.
 
@@ -726,10 +726,10 @@ public class PostService {
 
     // 게시글 생성
     @Transactional
-    public void createPost(CreatePostRequest createPostRequest, User user) {
+    public void createPost(CreatePostRequest createPostRequest, User member) {
 
         // 글 저장
-        Post post = Post.toEntity(createPostRequest, user);
+        Post post = Post.toEntity(createPostRequest, member);
         postRepository.save(post);
 
         // 이미지 저장
@@ -758,30 +758,30 @@ public class PostService {
 @DisplayName("N+1 문제")
 void findPostLazy() {
     // given
-    User user1 = User.builder()
-            .username("user1")
-            .nickname("user1")
+    User member1 = User.builder()
+            .username("member1")
+            .nickname("member1")
             .password("password")
-            .email("user1@naver.com")
+            .email("member1@naver.com")
             .build();
-    em.persist(user1);
+    em.persist(member1);
 
-    User user2 = User.builder()
-            .username("user2")
-            .nickname("user2")
+    User member2 = User.builder()
+            .username("member2")
+            .nickname("member2")
             .password("password")
-            .email("user2@naver.com")
+            .email("member2@naver.com")
             .build();
-    em.persist(user2);
+    em.persist(member2);
 
     Post post1 = Post.builder()
-            .author(user1)
+            .author(member1)
             .content("post1")
             .build();
     em.persist(post1);
 
     Post post2 = Post.builder()
-            .author(user2)
+            .author(member2)
             .content("post2")
             .build();
     em.persist(post2);
@@ -836,15 +836,15 @@ public class Post {
 
 Post 엔티티에서 author와 ManyToOne 관계를 가지고, 기본 fetch type인 **즉시로딩(EAGER)** 로 설정해주었다.
 
-<img width="710" alt="스크린샷 2024-09-28 오후 12 37 55" src="https://github.com/user-attachments/assets/0db7c6fd-d445-42f1-a908-298862d4fbc6">
+<img width="710" alt="스크린샷 2024-09-28 오후 12 37 55" src="https://github.com/member-attachments/assets/0db7c6fd-d445-42f1-a908-298862d4fbc6">
 
-<img width="698" alt="스크린샷 2024-09-28 오후 12 40 06" src="https://github.com/user-attachments/assets/ef42cd6d-6d2e-4c1a-a40a-dbd249b5cee5">
+<img width="698" alt="스크린샷 2024-09-28 오후 12 40 06" src="https://github.com/member-attachments/assets/ef42cd6d-6d2e-4c1a-a40a-dbd249b5cee5">
 
-테스트 코드를 돌려보면 post를 조회할때 author(user)도 함께 조회하는 것을 확인할 수 있다.
+테스트 코드를 돌려보면 post를 조회할때 author(member)도 함께 조회하는 것을 확인할 수 있다.
 
 <br/>
 
-🚨 **하지만 나는 post만 조회하고 싶었는데 user 조회 쿼리도 추가로 나가면…손해 아닌가요?**
+🚨 **하지만 나는 post만 조회하고 싶었는데 member 조회 쿼리도 추가로 나가면…손해 아닌가요?**
 
 **만약 post가 50개 있다면, 전체 post를 조회하는 쿼리 1번 + 각 post의 author를 조회하는 쿼리 50번이 추가로 나갈 것이다 (N + 1 문제)**
 
@@ -888,7 +888,7 @@ public class Post {
 
 <br/>
 
-<img width="683" alt="스크린샷 2024-09-28 오전 9 33 05" src="https://github.com/user-attachments/assets/039f2f42-e4ef-42b5-a657-c31b0f5668da">
+<img width="683" alt="스크린샷 2024-09-28 오전 9 33 05" src="https://github.com/member-attachments/assets/039f2f42-e4ef-42b5-a657-c31b0f5668da">
 
 `postRepository.findAll()` 부분이다.
 
@@ -896,7 +896,7 @@ public class Post {
 
 <br/>
 
-<img width="809" alt="스크린샷 2024-09-28 오전 9 33 30" src="https://github.com/user-attachments/assets/09c5106e-dc45-459d-9105-f9de7116a537">
+<img width="809" alt="스크린샷 2024-09-28 오전 9 33 30" src="https://github.com/member-attachments/assets/09c5106e-dc45-459d-9105-f9de7116a537">
 
 post의 author가 지연로딩으로 설정되어 있어 `getAuthor()`를 했을 때는 proxy 객체가 들어가고,
 
@@ -906,7 +906,7 @@ post의 author가 지연로딩으로 설정되어 있어 `getAuthor()`를 했을
 
 <br/>
 
-<img width="819" alt="스크린샷 2024-09-28 오전 9 33 56" src="https://github.com/user-attachments/assets/8d5d0386-1cc0-4fcb-a70e-36a319e20242">
+<img width="819" alt="스크린샷 2024-09-28 오전 9 33 56" src="https://github.com/member-attachments/assets/8d5d0386-1cc0-4fcb-a70e-36a319e20242">
 
 → 두번째 post에 대한 author를 조회하는 쿼리가 1번 나갔다.
 
@@ -929,9 +929,9 @@ left join을 통해 post와 user를 join 해줬다.
 
 <br/>
 
-<img width="535" alt="스크린샷 2024-09-28 오후 1 41 23" src="https://github.com/user-attachments/assets/483a3c08-c5fa-4bb0-abec-7a04af7ada5a">
+<img width="535" alt="스크린샷 2024-09-28 오후 1 41 23" src="https://github.com/member-attachments/assets/483a3c08-c5fa-4bb0-abec-7a04af7ada5a">
 
-이렇게 한번의 쿼리로 post, user 모두 조회할 수 있다. → N + 1 문제 해결
+이렇게 한번의 쿼리로 post, member 모두 조회할 수 있다. → N + 1 문제 해결
 
 <br/>
 
@@ -964,15 +964,15 @@ public class FollowServiceTest {
 <br/>
 
 ```java
- 		private User user;
+ 		private User member;
     private User follower1;
     private User follower2;
 
     @BeforeEach
     void setUp() {
-        user = User.builder()
+        member = User.builder()
                 .id(1L)
-                .nickname("user")
+                .nickname("member")
                 .password("password")
                 .build();
 
@@ -1000,10 +1000,10 @@ public class FollowServiceTest {
     void getFollowerTest() {
         // given
         List<User> followers = Arrays.asList(follower1, follower2);
-        when(followRepository.findByToUser(user)).thenReturn(followers);
+        when(followRepository.findByToUser(member)).thenReturn(followers);
 
         // when
-        List<GetFollowerResponse> responses = followService.getFollower(user);
+        List<GetFollowerResponse> responses = followService.getFollower(member);
 
         // then
         assertEquals(2, responses.size());
@@ -1012,5 +1012,338 @@ public class FollowServiceTest {
     }
 ```
 
-- `when(followRepository.findByToUser(user)).thenReturn(followers)` 을 통해 모의 객체인 followRepository의 예상 동작을 정의한다.
+- `when(followRepository.findByToUser(member)).thenReturn(followers)` 을 통해 모의 객체인 followRepository의 예상 동작을 정의한다.
     - 'followRepository의 findByToUser메서드의 매개변수로 user가 넘어오면, followers를 반환해라' 라는 의미이다.
+
+<br/>
+
+----
+## 4주차 CRUD API 만들기
+
+4주차 과제는 CRUD API 만들기였는데 새롭게 알게된 점과 코드를 작성하며 고민했던 부분 위주로 README를 작성해보았습니다!
+
+## 💡 전역 예외 처리 (GlobalExceptionHandler)
+
+```java
+@Transactional
+public void deletePost(Long postId) {
+
+    Post post = postRepository.findById(postId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 post입니다"));
+    postLikeRepository.deleteByPostId(postId);
+    postRepository.delete(post);
+}
+```
+
+기존에는 유효하지 않은 post id를 받은 경우, IllegalArgumentException을 통해 예외를 던져주었다.
+
+이 코드에서 한번 생각해 볼 수 있었던 것은
+
+**1. 문제 상황 : 500 에러**
+
+<img width="572" alt="스크린샷 2024-11-03 오후 12 52 29" src="https://github.com/user-attachments/assets/5aba4eea-9223-4c65-873d-07e35b2a922d">
+
+IllegalArgumentException을 던져 예외 처리를 했지만, 프론트가 받는 응답에는 500 Internal Server Error만 나타나게 된다.
+
+이 경우 프론트에서 예외 처리를 하기 어렵겠다고 생각했고, 사용자 입장에서도 실제로는 리소스를 찾지 못 해 발생한 에러이지만 500 서버 에러가 발생해 혼란을 줄 수 있다고 생각했다.
+
+<br/>
+
+**2. 초기 해결방법 : try-catch**
+
+```java
+try {
+    // 비즈니스 로직
+} catch (IllegalArgumentException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.failure("존재하지 않는 post 입니다"));
+}
+```
+
+컨트롤러마다 에러를 catch 해 예외에 따라 적절한 상태 코드와 응답을 만들어주는 방법을 생각했다.
+
+→ **하지만 이 방법은 예외 처리 코드가 너무 반복될 것 같은..문제점이 있다.**
+
+<br/>
+
+**3. 최종 해결방법 : 전역 예외 처리**기
+
+코드가 반복되는 비효율을 줄이기 위해 **전역 예외 처리기**를 도입하기로 했다.
+
+모든 컨트롤러에 적용되는 공통 예외 처리를 한 곳에 모아놓는 **중앙집중화** 된 방식으로 코드의 중복없이 일관된 응답 형식을 제공할 수 있다는 장점이 있다.
+
+그럼 이제 전역 예외 처리를 하기 위해 필요한 코드를 살펴보도록 하자!
+
+<br/>
+
+### 1. ExceptionCode
+
+```java
+@Getter
+public enum ExceptionCode {
+
+    NOT_FOUND_MEMBER(HttpStatus.NOT_FOUND, "해당 member는 존재하지 않습니다."),
+    NOT_FOUND_POST(HttpStatus.NOT_FOUND, "해당 post는 존재하지 않습니다."),
+    NOT_FOUND_COMMENT(HttpStatus.NOT_FOUND, "해당 comment는 존재하지 않습니다."),
+    NOT_FOUND_IMAGE(HttpStatus.NOT_FOUND, "해당 image는 존재하지 않습니다."),
+    NOT_FOUND_POSTLIKE(HttpStatus.NOT_FOUND, "해당 postlike는 존재하지 않습니다."),
+    NOT_FOUND_CHATROOM(HttpStatus.NOT_FOUND, "해당 chatroom은 존재하지 않습니다."),
+    NOT_FOUND_MESSAGE(HttpStatus.NOT_FOUND, "해당 message는 존재하지 않습니다.");
+
+    private final HttpStatus status;
+    private final String message;
+
+    ExceptionCode(final HttpStatus status, final String message) {
+        this.status = status;
+        this.message = message;
+    }
+}
+```
+
+- **예외 상태** 와 **예외 메시지** 를 관리하기 위한 ENUM 클래스이다.
+- 특정 리소스가 없는 경우 클라이언트에게 보낼 예외의 상태 코드와 메시지를 정의할 수 있다.
+    - NOT_FOUND 이외에도 BAD_REQUEST같은 다양한 예외 상황을 정의할 수 있다.
+
+<br/>
+
+### 2. NotFoundException
+
+```java
+public class NotFoundException extends RuntimeException{
+
+    private final ExceptionCode exceptionCode;
+
+    public NotFoundException(ExceptionCode exceptionCode) {
+        super(exceptionCode.getMessage());
+        this.exceptionCode = exceptionCode;
+    }
+
+    public HttpStatus getStatus() {
+        return exceptionCode.getStatus();
+    }
+
+    public String getMessage() {
+        return exceptionCode.getMessage();
+    }
+}
+```
+
+- NotFoundException 이라는 사용자 정의 예외 클래스를 정의했다.
+- 특정 ExceptionCode를 기반으로 예외를 발생시키며, 각 예외에 맞는 HTTP 상태 코드와 메시지를 제공하는 역할을 한다.
+
+<br/>
+
+### 3. GlobalExceptionHandler
+
+**🧐 GlobalExceptionHandler란??**
+
+여기가 바로 애플리케이션 전반에서 발생하는 예외들을 한 곳에서 처리하기 위한 전역 예외 처리기이다.
+
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNotFoundException(final NotFoundException e) {
+
+        ExceptionResponse exceptionResponse = ExceptionResponse.from(e);
+        ApiResponse<Void> apiResponse = ApiResponse.failure(exceptionResponse);
+
+        return ResponseEntity
+                .status(exceptionResponse.getStatus())
+                .body(apiResponse);
+    }
+}
+```
+
+- `@RestControllerAdvice`와 `@ExceptionHandler` 를 사용해, 특정 예외 발생 시 일관된 형식으로 응답을 반환하는 역할을 한다.
+    - `@RestControllerAdvice` : `@Controller` + `@ResponseBody` 로 모든 컨트롤러에서 발생하는 예외를 전역적으로 처리하는 클래스 임을 나타낸다. ⇒ **여기가 바로 중앙 집중화를 가능하게 해주는 부분!**
+    - `@ExceptionHandler(NotFoundException.class)` : NotFoundException이 발생했을 때, 이 메서드가 호출되도록 지정한다.
+
+```java
+@Transactional
+public void deletePost(Long postId) {
+
+    Post post = postRepository.findById(postId)
+            .orElseThrow(() -> new NotFoundException(ExceptionCode.NOT_FOUND_POST));
+    postLikeRepository.deleteByPostId(postId);
+    postRepository.delete(post);
+}
+```
+
+이제 예외 발생 상황에서 NotFoundException을 던져주면, 먼저 코드를 호출한 부분으로 돌아가는데 컨트롤러에서 예외 처리를 따로 하지 않으므로 GlobalExceptionHandler가 예외를 잡게 된다.
+
+GlobalExceptionHandler의 `handleNotFoundException` 메서드가 실행되어 예외 정보를 response에 담아 클라이언트에게 반환한다.
+
+<br/>
+
+## 💡 ResponseEntity VS 공통 응답 형식
+
+<img width="580" alt="스크린샷 2024-11-03 오후 2 58 57" src="https://github.com/user-attachments/assets/ce4c941d-db5b-444f-bb8a-5ae51521c029">
+
+HTTP 응답 메시지를 살펴보면
+
+HTTP 상태 코드, 헤더, 애플리케이션에서 처리한 데이터 등을 response에 담아줘야 하는데..
+
+우리는 이런 정보를 어떻게 응답할 수 있을까?
+
+<br/>
+
+### 1. ResponseEntity 사용하기
+
+**HttpEntity**
+
+<img width="564" alt="스크린샷 2024-11-03 오후 2 52 06" src="https://github.com/user-attachments/assets/c2754545-7389-4e99-b5d7-7e7cd208b50a">
+
+먼저 스프링은 HttpEntity라는 클래스를 제공하는데 HttpHeader와 HttpBody를 포함하고 있다.
+
+<br/>
+
+**ResponseEntity**
+
+<img width="459" alt="스크린샷 2024-11-03 오후 2 51 38" src="https://github.com/user-attachments/assets/f524eb86-16a4-4ac8-9cbc-e00368d937ab">
+
+ResponseEntity 클래스는 HttpEntity를 상속받아 사용하고 HttpStatusCode를 포함하고 있다.
+
+따라서 우리는 **ResponseEntity** 클래스를 사용해 http status, header, body를 전부 담아 클라이언트에게 응답할 수 있는 것이다!
+
+```java
+@GetMapping("/{postId}")
+public ResponseEntity<GetPostResponse> getPostById(@PathVariable Long postId) {
+    GetPostResponse getPostResponse = postService.getPostById(postId);
+    
+    return ResponseEntity
+            .status(HttpStatus.OK)
+            .body(getPostResponse);
+}
+```
+
+🚨 **이 경우에 문제점은 성공했을 때와 실패 했을 때의 응답 형식이 다르다는 것이다.**
+
+응답 형식이 다르다면 프론트에서 예외 처리를 하기 어려워질 것이다. 이를 어떻게 해결하면 좋을까?
+
+### 2. 공통 응답 형식
+
+response를 공통된 형식으로 반환하는 방법이 있다.
+
+```java
+@Getter
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+public class ApiResponse<T> {
+
+    private static final String SUCCESS_STATUS = "success";
+    private static final String FAIL_STATUS = "fail";
+    private static final String ERROR_STATUS = "error";
+
+    private final String status;
+    private final String message;
+    private final T data;
+
+    public static <T> ApiResponse<T> success(String message, T data) {
+        return new ApiResponse<>(SUCCESS_STATUS, message, data);
+    }
+
+    public static <T> ApiResponse<T> failure(ExceptionResponse error) {
+        return new ApiResponse<>(ERROR_STATUS, error.getMessage(), null);
+    }
+}
+```
+
+위의 코드 처럼 status, message, data 세개의 필드를 갖는 ApiResponse를 반환하면 요청 성공, 실패 모두 같은 형식의 response를 받을 수 있게 된다.
+
+<img width="448" alt="스크린샷 2024-11-02 오후 5 19 01" src="https://github.com/user-attachments/assets/39eb7d7a-cac6-4f66-80b3-6f07ac04371b">
+
+<img width="486" alt="스크린샷 2024-11-02 오후 5 18 49" src="https://github.com/user-attachments/assets/58c3106a-7f7b-46d2-a480-eddf560a98a8">
+
+<br/>
+
+### 🧐 그러면 둘 중에 무엇을 사용하는게 더 좋을까??
+
+- ResponseEntity의 장점
+    - 정교하게 HttpStatus를 조절하여 그 값을 실제로 HttpStatus에 반영 가능하다
+- ResponseEntity의 단점
+    - 성공 시와 실패 했을 때의 응답 형식이 다르다
+- 공통 응답 형식의 장점
+    - 공통된 형식으로 응답할 수 있어 프론트에서 예외 처리하기 쉬워진다
+- 공통 응답 형식의 단점
+    - 정교한 HttpStatus를 설정하기 까다로울 수 있다
+
+이렇게 각각 장단점이 존재하여…프론트와 협의해서 사용하면 된다고 생각한다. 
+
+응답에 맞는 정교한 HttpStatus가 중요하다고 생각해 ResponseEntity와 공통 응답 형식 모두 사용해줬다 
+
+```java
+@GetMapping("/{postId}")
+public ResponseEntity<ApiResponse<GetPostResponse>> getPostById(@PathVariable Long postId) {
+
+    GetPostResponse getPostResponse = postService.getPostById(postId);
+    return ResponseBuilder.createApiResponse("게시글 단건 조회 완료", getPostResponse);
+}
+```
+
+ApiResponse라는 공통 형식의 클래스를 만들어 ResponseEntity의 body에 담아 반환했다. 
+
+<br/>
+
+## 💡 @Login 커스튬 어노테이션
+
+나중에 jwt 로그인을 구현하면 모든 요청마다 인증 검증 로직을 작성해야 되는데, 이를 간편하게 처리하고 바로 로그인 된 사용자를 주입받기 위해 `@Login` 이라는 커스튬 어노테이션을 만들어줬다.
+
+```java
+@Target(ElementType.PARAMETER)   // 이 어노테이션이 메서드의 파라미터에서만 적용될 수 있도록 함
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Login {
+}
+```
+
+```java
+@Component
+public class LoginArgumentResolver implements HandlerMethodArgumentResolver {
+
+	  @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+
+        boolean hasLoginAnnotation = parameter.hasParameterAnnotation(Login.class);
+        boolean isMemberType = parameter.getParameterType().equals(Member.class);
+        return hasLoginAnnotation && isMemberType;
+    }
+
+    @Override
+    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+                                  NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
+
+        // 추후 jwt로 현재 로그인한 Member 찾아 반환할 예정
+        return member;
+    }
+}
+```
+
+<br/>
+
+**HandlerMethodArgumentResolver 인터페이스**
+
+- 스프링 MVC에서 컨트롤러 메서드의 파라미터를 처리하기 위해 사용하는 인터페이스이다.
+- 컨트롤러 메서드의 파라미터로 **특정 객체를 자동으로 주입**할 수 있다.
+
+<br/>
+
+주로 두가지 메서드로 이루어져 있는데
+
+- supportsParameter
+    - 특정 파라미터가 처리 대상인지 결정하는 메서드이다.
+    - 이 메서드는 boolean을 반환하고, true 일 경우 스프링이 이 파라미터에 대해 resolveArgument 메서드를 사용하도록 한다.
+    - ex) 위의 코드를 보면 파라미터에 붙은 어노테이션이 맞는지, 파라미터의 타입이 Member가 맞는지 검사하고 있다
+- resolveArgument
+    - 실제로 파라미터에 전달할 객체를 생성하고 반환한다.
+
+```java
+@PostMapping
+public ResponseEntity<ApiResponse<Void>> createPost(
+        @RequestBody CreatePostRequest createPostRequest,
+        @Login Member member) {
+
+    postService.createPost(createPostRequest, member);
+    return ResponseBuilder.createApiResponse("게시글 작성 완료", null);
+}
+```
+
+나중에 `resolveArgument` 메서드에 토큰을 검사해 현재 로그인 된 회원 정보를 가져오고, DB에서 조회해 반환하는 로직을 작성하면, 컨트롤러 메서드에서 `@Login` 어노테이션을 붙여 **로그인된 member 정보를 바로 주입**받을 수 있게 된다.

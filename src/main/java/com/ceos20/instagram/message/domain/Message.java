@@ -1,7 +1,7 @@
 package com.ceos20.instagram.message.domain;
 
 import com.ceos20.instagram.chatRoom.domain.ChatRoom;
-import com.ceos20.instagram.user.domain.User;
+import com.ceos20.instagram.member.domain.Member;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -33,5 +33,5 @@ public class Message {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id")
-    private User sender;
+    private Member sender;
 }

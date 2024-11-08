@@ -1,6 +1,6 @@
-package com.ceos20.instagram.user.repository;
+package com.ceos20.instagram.member.repository;
 
-import com.ceos20.instagram.user.domain.User;
+import com.ceos20.instagram.member.domain.Member;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,30 +13,30 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @Transactional
-public class UserRepositoryTest {
+public class MemberRepositoryTest {
 
-    private final UserRepository userRepository;
+    private final MemberRepository memberRepository;
 
     @Autowired
-    public UserRepositoryTest(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public MemberRepositoryTest(MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
     }
 
     @Test
     @DisplayName("id로 유저 조회 테스트")
     void findByIdTest() throws Exception {
         // given
-        User user = User.builder()
+        Member member = Member.builder()
                 .username("최서지")
                 .nickname("seoji")
                 .password("password")
                 .build();
 
         // when
-        userRepository.save(user);
-        Optional<User> findUser = userRepository.findById(user.getId());
+        memberRepository.save(member);
+        Optional<Member> findUser = memberRepository.findById(member.getId());
 
         // then
-        assertEquals(user.getId(), findUser.get().getId());
+        assertEquals(member.getId(), findUser.get().getId());
     }
 }

@@ -1,6 +1,6 @@
 package com.ceos20.instagram.follow.domain;
 
-import com.ceos20.instagram.user.domain.User;
+import com.ceos20.instagram.member.domain.Member;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,17 +17,17 @@ public class Follow {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "from_user_id")
-    private User fromUser;
+    @JoinColumn(name = "from_member_id")
+    private Member fromMember;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "to_user_id")
-    private User toUser;
+    @JoinColumn(name = "to_member_id")
+    private Member toMember;
 
-    public static Follow toEntity(User fromUser, User toUser) {
+    public static Follow toEntity(Member fromMember, Member toMember) {
         return Follow.builder()
-                .fromUser(fromUser)
-                .toUser(toUser)
+                .fromMember(fromMember)
+                .toMember(toMember)
                 .build();
     }
 }

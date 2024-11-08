@@ -2,7 +2,7 @@ package com.ceos20.instagram.postLike.repository;
 
 import com.ceos20.instagram.post.domain.Post;
 import com.ceos20.instagram.postLike.domain.PostLike;
-import com.ceos20.instagram.user.domain.User;
+import com.ceos20.instagram.member.domain.Member;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,29 +31,29 @@ public class PostLikeRepositoryTest {
     @DisplayName("해당 게시글의 좋아요 조회 테스트")
     public void findByPostTest() throws Exception {
         // given
-        User user1 = User.builder()
+        Member member1 = Member.builder()
                 .username("user1")
                 .nickname("user1")
                 .password("password")
                 .build();
-        em.persist(user1);
+        em.persist(member1);
 
-        User user2 = User.builder()
+        Member member2 = Member.builder()
                 .username("user2")
                 .nickname("user2")
                 .password("password")
                 .build();
-        em.persist(user2);
+        em.persist(member2);
 
         Post post = Post.builder()
                 .content("post")
-                .author(user1)
+                .author(member1)
                 .build();
         em.persist(post);
 
         PostLike postLike = PostLike.builder()
                 .post(post)
-                .user(user2)
+                .member(member2)
                 .build();
         em.persist(postLike);
 
@@ -62,7 +62,7 @@ public class PostLikeRepositoryTest {
 
         // then
         for(PostLike findPostLike : findPostLikes) {
-            System.out.println("좋아요 누른 사람: " + findPostLike.getUser().getUsername());
+            System.out.println("좋아요 누른 사람: " + findPostLike.getMember().getUsername());
             assertEquals(postLike.getId(), findPostLike.getId());
         }
     }

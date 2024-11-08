@@ -2,7 +2,7 @@ package com.ceos20.instagram.post.domain;
 
 import com.ceos20.instagram.image.domain.Image;
 import com.ceos20.instagram.post.dto.CreatePostRequest;
-import com.ceos20.instagram.user.domain.User;
+import com.ceos20.instagram.member.domain.Member;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -30,16 +30,16 @@ public class Post {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
-    private User author;
+    private Member author;
 
     @Builder.Default
-    @OneToMany(mappedBy = "post")
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
     private List<Image> images = new ArrayList<>();
 
-    public static Post toEntity(CreatePostRequest createPostRequest, User user) {
+    public static Post toEntity(CreatePostRequest createPostRequest, Member member) {
         return Post.builder()
                 .content(createPostRequest.getContent())
-                .author(user)
+                .author(member)
                 .build();
     }
 

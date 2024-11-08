@@ -2,7 +2,7 @@ package com.ceos20.instagram.message.dto;
 
 import com.ceos20.instagram.chatRoom.domain.ChatRoom;
 import com.ceos20.instagram.message.domain.Message;
-import com.ceos20.instagram.user.domain.User;
+import com.ceos20.instagram.member.domain.Member;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,7 +18,7 @@ public class CreateMessageRequest {
 
     private Long roomId;
 
-    public Message toEntity(User sender, ChatRoom chatRoom) {
+    public Message toEntity(Member sender, ChatRoom chatRoom) {
         return Message.builder()
                 .content(content)
                 .sender(sender)

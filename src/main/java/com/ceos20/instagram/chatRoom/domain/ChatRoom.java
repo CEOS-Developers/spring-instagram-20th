@@ -1,6 +1,6 @@
 package com.ceos20.instagram.chatRoom.domain;
 
-import com.ceos20.instagram.user.domain.User;
+import com.ceos20.instagram.member.domain.Member;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,17 +17,17 @@ public class ChatRoom {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user1_id")
-    private User user1;
+    @JoinColumn(name = "member1_id")
+    private Member member1;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user2_id")
-    private User user2;
+    @JoinColumn(name = "member2_id")
+    private Member member2;
 
-    public static ChatRoom toEntity(User user1, User user2) {
+    public static ChatRoom toEntity(Member member1, Member member2) {
         return ChatRoom.builder()
-                .user1(user1)
-                .user2(user2)
+                .member1(member1)
+                .member2(member2)
                 .build();
     }
 }

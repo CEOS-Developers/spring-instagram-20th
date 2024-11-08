@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class GetPostResponse {
 
+    private Long authorId;
+
     private String content;
 
     private List<Image> imageList;
@@ -34,6 +36,7 @@ public class GetPostResponse {
                 .collect(Collectors.toList());
 
         return GetPostResponse.builder()
+                .authorId(post.getAuthor().getId())
                 .content(post.getContent())
                 .imageList(images)
                 .build();

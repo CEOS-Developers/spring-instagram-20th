@@ -1,6 +1,6 @@
-package com.ceos20.instagram.user.dto;
+package com.ceos20.instagram.member.dto;
 
-import com.ceos20.instagram.user.domain.User;
+import com.ceos20.instagram.member.domain.Member;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SaveUserRequest {
+public class SaveMemberRequest {
 
     private String username;
 
@@ -20,8 +20,8 @@ public class SaveUserRequest {
 
     private String email;
 
-    public User toEntity() {
-        return User.builder()
+    public Member toEntity() {
+        return Member.builder()
                 .username(username)
                 .nickname(nickname)
                 .password(password)

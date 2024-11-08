@@ -1,12 +1,17 @@
 package com.ceos20.instagram.post.service;
 
+import com.ceos20.instagram.global.exception.ExceptionCode;
+import com.ceos20.instagram.global.exception.NotFoundException;
 import com.ceos20.instagram.image.domain.Image;
 import com.ceos20.instagram.image.repository.ImageRepository;
+import com.ceos20.instagram.member.repository.MemberRepository;
 import com.ceos20.instagram.post.domain.Post;
 import com.ceos20.instagram.post.dto.CreatePostRequest;
 import com.ceos20.instagram.post.dto.GetPostResponse;
+import com.ceos20.instagram.post.dto.UpdatePostContentRequest;
 import com.ceos20.instagram.post.repository.PostRepository;
-import com.ceos20.instagram.user.domain.User;
+import com.ceos20.instagram.member.domain.Member;
+import com.ceos20.instagram.postLike.repository.PostLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,56 +24,62 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class PostService {
 
+    private final MemberRepository memberRepository;
     private final PostRepository postRepository;
     private final ImageRepository imageRepository;
+    private final PostLikeRepository postLikeRepository;
 
-    // 게시글 생성
     @Transactional
-    public void createPost(CreatePostRequest createPostRequest, User user) {
+    public void createPost(CreatePostRequest createPostRequest, Member member) {
 
-        // 글 저장
-        Post post = Post.toEntity(createPostRequest, user);
+        Post post = Post.toEntity(createPostRequest, member);
         postRepository.save(post);
 
-        // 이미지 저장
         List<Image> images = createPostRequest.getImages().stream()
                 .map(image -> Image.toEntity(post, image))
                 .collect(Collectors.toList());
         imageRepository.saveAll(images);
     }
 
-    // 게시글 본문 수정
+    public List<GetPostResponse> getAllPosts() {
+
+        List<Post> allPosts = postRepository.findAll();
+        return allPosts.stream()
+                .map(post -> GetPostResponse.fromEntity(post))
+                .collect(Collectors.toList());
+    }
+
     @Transactional
-    public void updatePostContent(String content, Long postId) {
+    public void updatePostContent(UpdatePostContentRequest updatePostContentRequest, Long postId) {
 
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 postId 입니다."));
-        post.updateContent(content);
+                .orElseThrow(() -> new NotFoundException(ExceptionCode.NOT_FOUND_POST));
+        post.updateContent(updatePostContentRequest.getContent());
         postRepository.save(post);
     }
 
-    // 게시글 삭제
     @Transactional
     public void deletePost(Long postId) {
 
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 postId 입니다."));
+                .orElseThrow(() -> new NotFoundException(ExceptionCode.NOT_FOUND_POST));
+        postLikeRepository.deleteByPostId(postId);
         postRepository.delete(post);
     }
 
-    // id로 게시글 조회
     public GetPostResponse getPostById(Long postId) {
 
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 postId 입니다."));
+                .orElseThrow(() -> new NotFoundException(ExceptionCode.NOT_FOUND_POST));
 
         return GetPostResponse.fromEntity(post);
     }
 
-    // 특정 user가 작성한 게시글 리스트 반환
-    public List<GetPostResponse> getPostsByUser(User user) {
+    public List<GetPostResponse> getAllPostsByMemberId(Long memberId) {
 
-        List<Post> posts = postRepository.findByAuthor(user);
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException(ExceptionCode.NOT_FOUND_MEMBER));
+        List<Post> posts = postRepository.findByAuthor(member);
 
         return posts.stream()
                 .map(post -> GetPostResponse.fromEntity(post))

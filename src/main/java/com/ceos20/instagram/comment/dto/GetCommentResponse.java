@@ -1,7 +1,7 @@
 package com.ceos20.instagram.comment.dto;
 
 import com.ceos20.instagram.comment.domain.Comment;
-import com.ceos20.instagram.user.domain.User;
+import com.ceos20.instagram.member.domain.Member;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,15 +15,27 @@ public class GetCommentResponse {
 
     private Long commentId;
 
+    private Long parentCommentId;
+
     private String content;
 
-    private User author;
+    private Long authorId;
+
+    private String authorNickname;
 
     public static GetCommentResponse fromEntity(Comment comment) {
+
+        Long parentCommentId = null;
+        if (comment.getParentComment() != null) {
+            parentCommentId = comment.getParentComment().getId();
+        }
+
         return GetCommentResponse.builder()
                 .commentId(comment.getId())
+                .parentCommentId(parentCommentId)
                 .content(comment.getContent())
-                .author(comment.getAuthor())
+                .authorId(comment.getAuthor().getId())
+                .authorNickname(comment.getAuthor().getNickname())
                 .build();
     }
 }

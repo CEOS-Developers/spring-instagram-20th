@@ -1,8 +1,7 @@
 package com.ceos20.instagram.post.repository;
 
 import com.ceos20.instagram.post.domain.Post;
-import com.ceos20.instagram.user.domain.User;
-import com.ceos20.instagram.user.repository.UserRepository;
+import com.ceos20.instagram.member.domain.Member;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,47 +30,47 @@ public class PostRepositoryTest {
     @DisplayName("author로 게시글 조회 테스트")
     void findByAuthorTest() throws Exception {
         // given
-        User user1 = User.builder()
+        Member member1 = Member.builder()
                 .username("user1")
                 .nickname("user1")
                 .password("password")
                 .build();
-        em.persist(user1);
+        em.persist(member1);
 
-        User user2 = User.builder()
+        Member member2 = Member.builder()
                 .username("user2")
                 .nickname("user2")
                 .password("password")
                 .build();
-        em.persist(user2);
+        em.persist(member2);
 
-        User user3 = User.builder()
+        Member member3 = Member.builder()
                 .username("user3")
                 .nickname("user3")
                 .password("password")
                 .build();
-        em.persist(user3);
+        em.persist(member3);
 
         Post post1 = Post.builder()
                 .content("user1이 작성한 post1")
-                .author(user1)
+                .author(member1)
                 .build();
         em.persist(post1);
 
         Post post2 = Post.builder()
                 .content("user1이 작성한 post2")
-                .author(user1)
+                .author(member1)
                 .build();
         em.persist(post2);
 
         Post post3 = Post.builder()
                 .content("user2이 작성한 post3")
-                .author(user2)
+                .author(member2)
                 .build();
         em.persist(post3);
 
         // when
-        List<Post> findPosts = postRepository.findByAuthor(user1);
+        List<Post> findPosts = postRepository.findByAuthor(member1);
 
         // then
         assertEquals(2, findPosts.size());
@@ -85,30 +84,30 @@ public class PostRepositoryTest {
     @DisplayName("N+1 문제")
     void findPostLazy() {
         // given
-        User user1 = User.builder()
+        Member member1 = Member.builder()
                 .username("user1")
                 .nickname("user1")
                 .password("password")
                 .email("user1@naver.com")
                 .build();
-        em.persist(user1);
+        em.persist(member1);
 
-        User user2 = User.builder()
+        Member member2 = Member.builder()
                 .username("user2")
                 .nickname("user2")
                 .password("password")
                 .email("user2@naver.com")
                 .build();
-        em.persist(user2);
+        em.persist(member2);
 
         Post post1 = Post.builder()
-                .author(user1)
+                .author(member1)
                 .content("post1")
                 .build();
         em.persist(post1);
 
         Post post2 = Post.builder()
-                .author(user2)
+                .author(member2)
                 .content("post2")
                 .build();
         em.persist(post2);

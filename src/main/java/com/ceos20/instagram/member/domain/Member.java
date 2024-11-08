@@ -1,4 +1,4 @@
-package com.ceos20.instagram.user.domain;
+package com.ceos20.instagram.member.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,11 +9,11 @@ import org.jetbrains.annotations.NotNull;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class Member {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
+    @Column(name = "member_id")
     private Long id;
 
     private String username;      // ex) 최서지

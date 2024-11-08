@@ -3,7 +3,7 @@ package com.ceos20.instagram.follow.service;
 import com.ceos20.instagram.follow.dto.GetFollowerResponse;
 import com.ceos20.instagram.follow.dto.GetFollowingResponse;
 import com.ceos20.instagram.follow.repository.FollowRepository;
-import com.ceos20.instagram.user.domain.User;
+import com.ceos20.instagram.member.domain.Member;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,25 +25,25 @@ public class FollowServiceTest {
     @InjectMocks
     private FollowService followService;
 
-    private User user;
-    private User follower1;
-    private User follower2;
+    private Member member;
+    private Member follower1;
+    private Member follower2;
 
     @BeforeEach
     void setUp() {
-        user = User.builder()
+        member = Member.builder()
                 .id(1L)
                 .nickname("user")
                 .password("password")
                 .build();
 
-        follower1 = User.builder()
+        follower1 = Member.builder()
                 .id(2L)
                 .nickname("follower1")
                 .password("password")
                 .build();
 
-        follower2 = User.builder()
+        follower2 = Member.builder()
                 .id(3L)
                 .nickname("follower2")
                 .password("password")
@@ -54,11 +54,11 @@ public class FollowServiceTest {
     @DisplayName("나를 팔로우하는 사람들 반환 테스트")
     void getFollowerTest() {
         // given
-        List<User> followers = Arrays.asList(follower1, follower2);
-        when(followRepository.findByToUser(user)).thenReturn(followers);
+        List<Member> followers = Arrays.asList(follower1, follower2);
+        when(followRepository.findByToMember(member)).thenReturn(followers);
 
         // when
-        List<GetFollowerResponse> responses = followService.getFollower(user);
+        List<GetFollowerResponse> responses = followService.getFollower(member);
 
         // then
         assertEquals(2, responses.size());
@@ -70,11 +70,11 @@ public class FollowServiceTest {
     @DisplayName("내가 팔로우하는 사람들 리스트 반환")
     void getFollowingTest() {
         // given
-        List<User> following = Arrays.asList(follower1, follower2);
-        when(followRepository.findByFromUser(user)).thenReturn(following);
+        List<Member> following = Arrays.asList(follower1, follower2);
+        when(followRepository.findByFromMember(member)).thenReturn(following);
 
         // when
-        List<GetFollowingResponse> responses = followService.getFollowing(user);
+        List<GetFollowingResponse> responses = followService.getFollowing(member);
 
         // then
         assertEquals(2, responses.size());

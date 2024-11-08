@@ -6,7 +6,7 @@ import com.ceos20.instagram.post.domain.Post;
 import com.ceos20.instagram.post.dto.CreatePostRequest;
 import com.ceos20.instagram.post.dto.GetPostResponse;
 import com.ceos20.instagram.post.repository.PostRepository;
-import com.ceos20.instagram.user.domain.User;
+import com.ceos20.instagram.member.domain.Member;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ public class PostServiceTest {
     @InjectMocks   // 모킹된 postRepository와 imageRepository를 postService에 주입
     private PostService postService;
 
-    private User user;
+    private Member member;
     private Post post;
 
     private List<Image> images = new ArrayList<>();
@@ -40,7 +40,7 @@ public class PostServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        user = User.builder()
+        member = Member.builder()
                 .id(1L)
                 .username("seoji")
                 .nickname("__seoji")
@@ -51,7 +51,7 @@ public class PostServiceTest {
         post = Post.builder()
                 .id(1L)
                 .images(images)
-                .author(user)
+                .author(member)
                 .content("post 본문")
                 .build();
 
@@ -78,7 +78,7 @@ public class PostServiceTest {
                 .build();
 
         // when
-        postService.createPost(request, user);
+        postService.createPost(request, member);
 
         // then
         verify(postRepository, times(1)).save(any(Post.class));
@@ -119,10 +119,10 @@ public class PostServiceTest {
     void getPostByUserTest() {
         // given
         List<Post> posts = Arrays.asList(post);
-        when(postRepository.findByAuthor(user)).thenReturn(posts);
+        when(postRepository.findByAuthor(member)).thenReturn(posts);
 
         // when
-        List<GetPostResponse> responses = postService.getPostsByUser(user);
+        List<GetPostResponse> responses = postService.getPostsByUser(member);
 
         // then
         for(GetPostResponse response : responses) {
