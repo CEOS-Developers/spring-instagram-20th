@@ -1,6 +1,7 @@
 package com.ceos20.spring_boot.comment.controller;
 
-import com.ceos20.spring_boot.comment.domain.CommentLike;
+import com.ceos20.spring_boot.comment.dto.CommentLikeRequestDto;
+import com.ceos20.spring_boot.comment.dto.CommentLikeResponseDto;
 import com.ceos20.spring_boot.comment.service.CommentLikeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +20,8 @@ public class CommentLikeController {
 
     // 댓글 좋아요 추가 (POST 요청)
     @PostMapping
-    public ResponseEntity<CommentLike> addCommentLike(@RequestBody CommentLike commentLike) {
-        CommentLike createdCommentLike = commentLikeService.addCommentLike(commentLike);
+    public ResponseEntity<CommentLikeResponseDto> addCommentLike(@RequestBody CommentLikeRequestDto commentLikeRequestDto) {
+        CommentLikeResponseDto createdCommentLike = commentLikeService.addCommentLike(commentLikeRequestDto);
         return ResponseEntity.ok(createdCommentLike);
     }
 
@@ -33,8 +34,8 @@ public class CommentLikeController {
 
     // 댓글 좋아요 조회 (GET 요청)
     @GetMapping("/{commentLikeId}")
-    public ResponseEntity<CommentLike> getCommentLikeById(@PathVariable Long commentLikeId) {
-        CommentLike commentLike = commentLikeService.getCommentLikeById(commentLikeId);
+    public ResponseEntity<CommentLikeResponseDto> getCommentLikeById(@PathVariable Long commentLikeId) {
+        CommentLikeResponseDto commentLike = commentLikeService.getCommentLikeById(commentLikeId);
         return ResponseEntity.ok(commentLike);
     }
 }

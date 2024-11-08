@@ -1,6 +1,7 @@
 package com.ceos20.spring_boot.post.controller;
 
-import com.ceos20.spring_boot.post.domain.PostLike;
+import com.ceos20.spring_boot.post.dto.PostLikeRequestDto;
+import com.ceos20.spring_boot.post.dto.PostLikeResponseDto;
 import com.ceos20.spring_boot.post.service.PostLikeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +20,8 @@ public class PostLikeController {
 
     // 게시물 좋아요 추가 (POST 요청)
     @PostMapping
-    public ResponseEntity<PostLike> addPostLike(@RequestBody PostLike postLike) {
-        PostLike createdPostLike = postLikeService.addPostLike(postLike);
+    public ResponseEntity<PostLikeResponseDto> addPostLike(@RequestBody PostLikeRequestDto postLikeRequestDto) {
+        PostLikeResponseDto createdPostLike = postLikeService.addPostLike(postLikeRequestDto);
         return ResponseEntity.ok(createdPostLike);
     }
 

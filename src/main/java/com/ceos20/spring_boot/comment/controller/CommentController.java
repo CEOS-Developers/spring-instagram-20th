@@ -1,6 +1,7 @@
 package com.ceos20.spring_boot.comment.controller;
 
-import com.ceos20.spring_boot.comment.domain.Comment;
+import com.ceos20.spring_boot.comment.dto.CommentRequestDto;
+import com.ceos20.spring_boot.comment.dto.CommentResponseDto;
 import com.ceos20.spring_boot.comment.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +20,8 @@ public class CommentController {
 
     // 댓글 추가 (POST 요청)
     @PostMapping
-    public ResponseEntity<Comment> addComment(@RequestBody Comment comment) {
-        Comment createdComment = commentService.addComment(comment);
+    public ResponseEntity<CommentResponseDto> addComment(@RequestBody CommentRequestDto commentRequestDto) {
+        CommentResponseDto createdComment = commentService.addComment(commentRequestDto);
         return ResponseEntity.ok(createdComment);
     }
 
@@ -33,8 +34,8 @@ public class CommentController {
 
     // 댓글 조회 (GET 요청)
     @GetMapping("/{commentId}")
-    public ResponseEntity<Comment> getCommentById(@PathVariable Long commentId) {
-        Comment comment = commentService.getCommentById(commentId);
+    public ResponseEntity<CommentResponseDto> getCommentById(@PathVariable Long commentId) {
+        CommentResponseDto comment = commentService.getCommentById(commentId);
         return ResponseEntity.ok(comment);
     }
 }

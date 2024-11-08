@@ -1,6 +1,7 @@
 package com.ceos20.spring_boot.dm.controller;
 
-import com.ceos20.spring_boot.dm.domain.DM;
+import com.ceos20.spring_boot.dm.dto.DMRequestDto;
+import com.ceos20.spring_boot.dm.dto.DMResponseDto;
 import com.ceos20.spring_boot.dm.service.DMService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,15 +20,15 @@ public class DMController {
 
     // DM 생성 (POST 요청)
     @PostMapping
-    public ResponseEntity<DM> sendDM(@RequestBody DM dm) {
-        DM createdDM = dmService.sendDM(dm);
+    public ResponseEntity<DMResponseDto> sendDM(@RequestBody DMRequestDto dmRequestDto) {
+        DMResponseDto createdDM = dmService.sendDM(dmRequestDto);
         return ResponseEntity.ok(createdDM);
     }
 
     // DM 조회 (GET 요청)
     @GetMapping("/{dmId}")
-    public ResponseEntity<DM> getDMById(@PathVariable Long dmId) {
-        DM dm = dmService.getDMById(dmId);
+    public ResponseEntity<DMResponseDto> getDMById(@PathVariable Long dmId) {
+        DMResponseDto dm = dmService.getDMById(dmId);
         return ResponseEntity.ok(dm);
     }
 

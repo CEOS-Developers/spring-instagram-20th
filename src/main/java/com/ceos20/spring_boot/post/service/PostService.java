@@ -1,12 +1,15 @@
 package com.ceos20.spring_boot.post.service;
 
 import com.ceos20.spring_boot.post.domain.Post;
+import com.ceos20.spring_boot.post.dto.PostRequestDto;
+import com.ceos20.spring_boot.post.dto.PostResponseDto;
 import com.ceos20.spring_boot.post.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PostService {
@@ -20,15 +23,26 @@ public class PostService {
 
     // 게시물 생성
     @Transactional
-    public Post createPost(Post post) {
-        return postRepository.save(post);
+    public PostResponseDto createPost(PostRequestDto postRequestDto) {
+        Post post = PostRequestDto.toEntity(postRequestDto);
+        Post savedPost = postRepository.save(post);
+        return PostResponseDto.fromEntity(savedPost);
     }
 
-    // 게시물 조회
+    // 모든 게시물 조회
     @Transactional(readOnly = true)
-    public Post getPostById(Long postId) {
-        return postRepository.findById(postId)
+    public List<PostResponseDto> getAllPosts() {
+        return postRepository.findAll().stream()
+                .map(PostResponseDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    // 특정 게시물 조회
+    @Transactional(readOnly = true)
+    public PostResponseDto getPostById(Long postId) {
+        Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
+        return PostResponseDto.fromEntity(post);
     }
 
     // 게시물 삭제
