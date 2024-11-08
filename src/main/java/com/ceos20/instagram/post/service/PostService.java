@@ -23,6 +23,7 @@ import com.ceos20.instagram.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +54,7 @@ public class PostService {
         Post newPost=postRequestDto.toEntity(user);
 
         //MultipartFile을 PostImage로 변환
-        List<PostImage> images=postImageService.changeToPostImage(postRequestDto.getImages(), newPost);
+        List<PostImage> images=postImageService.changeToPostImage(postRequestDto.getImages(), newPost, 0);
 
         //Post와 image 매핑
         newPost.mapImages(images);
@@ -103,17 +104,26 @@ public class PostService {
         if(!target.getUser().getId().equals(userId)){
             throw new ForbiddenException(ExceptionCode.NOT_POST_OWNER);
         }
-        /*
-        //삭제된 이미지 있다면 삭제
-        postImageService.deleteImagesUpdatePost(target.getImages(), postRequestDto.getImages());
-        //추가된 이미지 있다면 추가
-        postImageService.saveImagesUpdatePost(target.getImages(), postRequestDto.getImages());
-        */
 
-        List<PostImage> images=postImageService.changeToPostImage(postRequestDto.getImages(), target);
+        //삭제된 이미지 있다면 삭제 (s3+db)
+        List<PostImage> deleteImages=postImageService.deleteImagesUpdatePost(target.getImages(), postRequestDto.getImages());
+        //새로 추가되어야 하는 이미지 리스트 반환
+        List<MultipartFile> imagesToAdd = postImageService.saveImagesUpdatePost(target.getImages(), postRequestDto.getImages());
 
-        target.getImages().clear();
-        target.update(postRequestDto, images);
+        //새로 추가된 이미지가 기존 이미지 이후 index에 추가되도록 (이렇게 안하면 삭제된 이미지 자리에 새로운 이미지가 추가됨)
+        int maxOrder=target.getImages().stream()
+                .mapToInt(PostImage::getImageOrder)
+                .max()
+                .orElse(0);
+
+        //Multipart -> PostImage로 변환 & PostImage를 Post와 관계 맺어주기 & S3에 추가된 이미지들만 저장
+        List<PostImage> newImages=postImageService.changeToPostImage(imagesToAdd, target, maxOrder);
+
+        postImageService.saveImagesToDb(newImages); //db에 새로 추가된 postImage 저장
+
+        //post와 매핑된 postImageList 변경
+        target.update(postRequestDto, newImages, deleteImages);
+
         return PostResponseDto.from(target);
     }
 
@@ -123,7 +133,7 @@ public class PostService {
         Post target=postRepository.findById(postId).orElseThrow(()-> new NotFoundException(ExceptionCode.NOT_FOUND_POST));
         commentRepository.deleteByPostId(postId);
         postLikeRepository.deleteByPostId(postId);
-        postImageService.deleteAllImages(postId); //서버에 업로드한 이미지 삭제. db 말고. 구현예정
+        postImageService.deleteAllImages(postId); // s3에서 이미지 삭제. db 말고.
 
         //CascadeType.ALL에 의해 PostImage도 같이 삭제됨
         postRepository.delete(target);

@@ -655,7 +655,7 @@ public class InstagramApplication {
   ```
 ### N+1 문제 해결법
 
-- N+1문제 : Lazy 로딩을 하더라도 연관된(매핑된) 엔티티를 get하는 식으로 사용할 때 추가적으로 쿼리가 나가게 된다.
+- N+1문제 : Member들을 조회하는 하나의 쿼리만 실행했음에도 각 Member와 연관된 Team을 조회하는 추가 쿼리가 발생하는 현상이다. 조회하려는 Member가 N명이라면, 각 Member마다 팀을 조회하는 쿼리가 실행되어 총 N개의 추가 쿼리가 나가게 된다. Lazy 로딩을 하더라도 연관된(매핑된) 엔티티를 get하는 방식으로 접근할 때 추가적으로 쿼리가 발생한다.
 
 - 다대일 관계 (Comment에서 Post를 사용) : fetch join 하기
 
@@ -991,7 +991,7 @@ public class MessageRequestDto {   //Dto에는 되도록 간단한 내용들 담
 
 # 3주차
 
-### 정적 팩토리 메소드
+### 📍 정적 팩토리 메소드
 
 객체를 인스턴스화 할 때 직접적으로 생성자를 호출하여 생성하지 않고, 별도의 객체 생성 역할을 하는 클래스의 static 메서드를 통해 간접적으로 객체 생성을 유도하는 방법이다.
 
@@ -1029,7 +1029,7 @@ public List<DmRoomResponseDto> getMyAllRooms(Long userId){
     2) of : 여러 매개변수를 받아 객체 생성
   
 
-### Global Exception
+### 📍 Global Exception
 
 - 사용하는 이유 : Controller 내에서 오류가 발생하면 HTTP Status 코드로 적절한 오류코드를 반환하게 되는데, 그러면 세부적인 서버 예외 정보인 '실제 에러'가 전달되어 클라이언트 측에서 어떤 오류인지 명확하게 이해하기 어려울 수 있다. 따라서 이런 처리를 통해 클라이언트가 이해할 수 있는 명확한 메시지와 상태코드로 오류 응답을 보내기 위해 사용한다.
 
@@ -1092,6 +1092,7 @@ public class NotFoundException extends RuntimeException{
 #### 3. ExceptionResponse
 
 ```
+@Getter
 public class ExceptionResponse {
     private final HttpStatus httpStatus;
     private final String divisionCode;
@@ -1104,13 +1105,13 @@ public class ExceptionResponse {
     }
 
     //NotFound Exception 응답
-    public static ExceptionResponse of(NotFoundException exception) {
+    public static ExceptionResponse from(NotFoundException exception) {
         ExceptionCode code=exception.getExceptionCode();
         return new ExceptionResponse(code.getStatus(), code.getDivisionCode(), exception.getMessage());
     }
 
     // ForbiddenException 응답
-    public static ExceptionResponse of(ForbiddenException exception) {
+    public static ExceptionResponse from(ForbiddenException exception) {
         ExceptionCode code=exception.getExceptionCode();
         return new ExceptionResponse(code.getStatus(), code.getDivisionCode(), exception.getMessage());
     }
@@ -1170,33 +1171,56 @@ public class GlobalExceptionHandler {
 
 - Service에서 발생한 예외가 컨트롤러로 전달되고, 컨트롤러에서 예외가 발생했을 때 Global Exception Handler가 처리하게 된다.
 
+### 📍 `@Valid` 예외처리
 
-### 이미지 업로드 관련
-
-#### postman에서는 form data형식에서 file을 선택하여 이미지 업로드 할 수 있지만, Swagger에서는 별도로 설정을 해주어야 한다.
-` @PutMapping(value="/{postId}/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE) `
-
-#### @ModelAttribute
-이미지파일 업로드 시에는 Content-Type이 **application/json**가 아니라 **multipart/form-data** 이어야 한다. 하지만, @RequestBody는 application/json 형식의 데이터를 처리하므로, multipart/form-data 형식을 처리할 수 없다. 따라서 Swagger나 Postman에서 파일을 업로드하려면 multipart/form-data 형식을 사용해야 하고, 이를 처리하기 위해서는 @RequestBody 대신 **@ModelAttribute**를 사용하여 PostRequestDto를 받아야 한다.
-
+@Valid 어노테이션을 붙여 RequestDto의 입력으로 들어온 필드값들이 유효한지 검사를 할 수 있다. 
 ```
-    // 게시글 생성
-    @PostMapping(value="/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)   //Swagger에서 MultipartFile을 받게 하기 위해
-    public ResponseEntity<Void> createPost(@ModelAttribute PostRequestDto postRequestDto, @PathVariable Long userId){
-        postService.createPost(postRequestDto, userId);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+@Getter
+public class UserRequestDto {  
+    @NotBlank(message="닉네임은 필수 입력값입니다.")
+    @Size(min=1, max=30, message="닉네임은 1-30글자입니다.")
+    private String nickname;
+
+    private String username;
+
+    @Email(message="이메일 형식이어야합니다.")
+    private String email;
+
+    private String password;
+    private String introduce;
+    private String profileImageurl;
+    private UserStatus status;
+```
+이때 유효성 검사가 실패하면 MethodArgumentNotValidException라는 예외가 발생하게 된다. 이 예외는 앞선 예외들과 달리 Spring Framework에서 제공하는 내장 예외 클래스이므로 NotFoundException과 같이 커슽텀 클래스를 굳이 만들어줄 필요가 없다. 따라서 커스텀 예외 클래스나 Exception Code를 만들지 않고 바로 GlobalExceptionHandler에서 내가 만든 message를 response로 응답 보내도록 처리했다.
+```
+@RestControllerAdvice
+@Slf4j
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleMethodArgumentNotValidException(MethodArgumentNotValidException e){
+        log.error(e.getMessage(),e);
+        return ResponseEntity.status(BAD_REQUEST).body(e.getBindingResult().getFieldErrors().get(0).getDefaultMessage());  
     }
+}
+
 ```
 
-### 게시글 수정부분 오류 : "A collection with cascade="all-delete-orphan" was no longer referenced by the owning entity instance"
+- `e.getBindingResult().getFieldErrors().get(0).getDefaultMessage()` 
+    - getBindingResult() : 유효성 검사 중 발생한 모든 오류 정보를 담고 있는 객체를 반환한다.
+    - getFieldErrors() : 필드 유효성 검사 오류 목록(각 필드의 유효성 검사 실패 정보가 담긴 목록)을 반환한다.
+    - get(0) : 첫 번째 오류만 가져온다.
+    - getDefaultMessage() : 해당 필드 오류에 대한 오류 메시지를 반환한다. `@Email(message="이메일 형식이어야합니다.")` 예를 들어, `@Email(message="이메일 형식이어야 합니다.")`에서 `message` 부분에 설정한 문자열이 오류 메시지로 반환된다.
+  
+이렇게 처리한다면, 예외가 발생한다면 `이메일 형식이어야합니다.`가 클라이언트에게 응답으로 반환되게 된다.
+
+
+### 🤔 게시글 수정부분 오류 : "A collection with cascade="all-delete-orphan" was no longer referenced by the owning entity instance"
 게시글 수정 구현할 때 기존에는 Post 엔티티의 images 필드를 새로운 이미지로 교체를 해버리도록 코드를 짰다.
 ```
     @Transactional
     public PostResponseDto updatePost(PostRequestDto postRequestDto,Long userId){
-        Post target=postRepository.findById(postRequestDto.getId()).orElseThrow(()-> new NotFoundException(ExceptionCode.NOT_FOUND_POST));
-        if(!target.getUser().getId().equals(userId)){
-            throw new ForbiddenException(ExceptionCode.NOT_POST_OWNER);
-        }
+        
         List<PostImage> images=postImageService.changeToPostImage(postRequestDto.getImages(), target);
         target.update(postRequestDto, images);
         return PostResponseDto.from(target);
@@ -1208,26 +1232,283 @@ public class GlobalExceptionHandler {
         this.images=images;
     }
 ```
-그랬더니 `"A collection with cascade="all-delete-orphan" was no longer referenced by the owning entity instance"`라는 오류가 떴다. images는 새로 생성한 애인데, 새로 생성한 친구는 hibernate가 관리하지 않아 문제가 된다고 한다. 따라서 기존의 images를 바꾸고 싶으면 샤로운 list를 만들어서 기존 것과 바꾸지 말고 `기존의 list를 clear 한 후, add` 해주는 식으로 업데이트 해야한다!
+그랬더니 `"A collection with cascade="all-delete-orphan" was no longer referenced by the owning entity instance"`라는 오류가 떴다. images는 새로 생성한 애인데, 새로 생성한 친구는 hibernate가 관리하지 않아 문제가 된다고 한다. 따라서 기존의 images를 바꾸고 싶으면 새로운 list를 만들어서 기존 것과 `바꾸지 말고` `기존의 list에서 필요 없는 부분을 remove로 제거해준 후, 추가해야하는 부분을 add` 하는 식으로 업데이트 해야한다!
 ```
-@Transactional
+         @Transactional
     public PostResponseDto updatePost(Long postId, Long userId, PostRequestDto postRequestDto){
-        Post target=postRepository.findById(postId).orElseThrow(()-> new NotFoundException(ExceptionCode.NOT_FOUND_POST));
-        //게시글 작성자인지 체크
-        if(!target.getUser().getId().equals(userId)){
-            throw new ForbiddenException(ExceptionCode.NOT_POST_OWNER);
-        }
 
-        List<PostImage> images=postImageService.changeToPostImage(postRequestDto.getImages(), target);
+        //삭제된 이미지 있다면 삭제
+        List<PostImage> deleteImages=postImageService.deleteImagesUpdatePost(target.getImages(), postRequestDto.getImages());
+        //추가된 이미지 있다면 추가
+        List<MultipartFile> imagesToAdd = postImageService.saveImagesUpdatePost(target.getImages(), postRequestDto.getImages());
         
-        target.getImages().clear();
-        target.update(postRequestDto, images);
+        
+        List<PostImage> newImages=postImageService.changeToPostImage(imagesToAdd, target);  
+        
+        postImageService.saveImagesToDb(newImages); //db에 postImage 저장
+
+        //post와 매핑된 postImageList 변경
+        target.update(postRequestDto, newImages, deleteImages);
+
         return PostResponseDto.from(target);
     }
 ```
 ```
-    public void update(PostRequestDto postRequestDto,List<PostImage> images) {
+      public void update(PostRequestDto postRequestDto,List<PostImage> newImages, List<PostImage> deletedImages) {
         this.content=postRequestDto.getContent();
-        this.images.addAll(images);
+        this.images.removeAll(deletedImages);
+        this.images.addAll(newImages);
+      }
+```
+
+### 📍 Swagger 연동
+
+Swagger 라이브러리로 Spring-fox, Spring-Doc 두 가지가 존재한다. Spring-fox는 나온지 오래되었고 2020년 이후로 업데이트가 중단된 반면에 Spring-Doc은 현재까지 꾸준히 업데이트 되고 있다.
+
+따라서 나는 Spring-Doc 라이브러리를 이용해보았다.
+
+1. build.gradle 추가
+```
+implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2")
+```
+
+2. application.yml 작성
+```
+springdoc:
+  swagger-ui:
+    # swagger-ui 접근 경로. default 값은 /swagger-ui.html이다.
+    path: /swagger-ui.html
+
+    # 컨트롤러 정렬 순서.
+    # method는 delete - get - patch - post - put 순으로 정렬된다.
+    # alpha를 사용해 알파벳 순으로 정렬할 수 있다.
+    operations-sorter: method
+
+    # swagger-ui default url인 petstore html의 비활성화 설정(개발자가 자신만의 API 문서만을 표시하고, 불필요한 기본 예제 URL을 제거하기 위해 사용)
+    disable-swagger-default-url: true
+
+    # swagger-ui에서 try 했을 때 request duration을 알려주는 설정(Swagger UI에서 API를 테스트할 때 API 요청의 소요 시간이 요청 결과와 함께 표시)
+    display-request-duration: true
+
+  # openAPI 접근 경로. default 값은 /v3/api-docs 이다.
+  api-docs:
+    path: /api-docs
+
+  # response media type 의 기본 값
+  default-produces-media-type: application/json
+```
+3. SwaggerConfig
+
+Jwt 사용 여부에 따라 내용이 달라지는데 아직 Jwt 연결 전이라 아래와 같이 작성하였다.
+```
+@Configuration
+public class SwaggerConfig {
+    @Bean
+    public OpenAPI openAPI(){ //Swagger 문서의 설정을 정의
+        return new OpenAPI()
+                .components(new Components())
+                .info(apiInfo());  //API 정보(제목, 설명, 버전, ..)을 설정
+    }
+    
+    private Info apiInfo(){
+        return new Info()
+                .title("Springdoc 테스트")   // API의 제목
+                .description("Springdoc을 사용한 Swagger UI 테스트")   // API에 대한 설명
+                .version("1.0.0");  // API의 버전
+    }
+}
+```
+![img_8.png](img_8.png)
+
+4. Controller 설정
+
+PostController
+```
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/posts")
+@Tag(name="Post Controller", description="게시글 컨트롤러")
+public class PostController {
+    private final PostService postService;
+    private final PostImageService postImageService;
+
+    // 게시글 생성
+    @PostMapping(value="/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)   //로그인 구현 후 수정   //Swagger에서 MultipartFile을 받게 하기 위해
+    @Operation(summary="게시글 생성", description="새 게시글 생성")
+    @ApiResponses(value={
+            @ApiResponse(responseCode="201", description="게시글 생성 성공"),
+            @ApiResponse(responseCode="400", description="게시글 생성 실패")
+    })
+    @Parameters({
+            @Parameter(name = "userId",description = "게시글 생성할 유저의 id", in = ParameterIn.PATH ,required = true),
+    })
+    public ResponseEntity<Void> createPost(@ModelAttribute PostRequestDto postRequestDto, @PathVariable Long userId){
+        postService.createPost(postRequestDto, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    // 특정 유저의 전체 게시글 조회
+    @GetMapping("/users/{userId}")    //로그인 구현 후 수정
+    @Operation(summary="유저의 게시글 조회", description="특정 유저의 전체 게시글 조회")
+    @ApiResponses(value={
+            @ApiResponse(responseCode="200", description="게시글 조회 성공"),
+            @ApiResponse(responseCode="404", description="해당 id 유저 존재하지 않음")
+    })
+    @Parameters({
+            @Parameter(name = "userId",description = "게시글 조회할 유저의 id", in = ParameterIn.PATH ,required = true),
+    })
+    public ResponseEntity<List<PostResponseDto>> getAllPostsByUser(@PathVariable Long userId){
+        List<PostResponseDto> dtos=postService.getAllPostsByUser(userId);
+        return ResponseEntity.ok().body(dtos);
+    }
+
+    // 하나의 특정 게시글 조회
+    @GetMapping("/{postId}")
+    @Operation(summary="특정 게시글 조회", description="특정 id의 게시글 조회")
+    @ApiResponses(value={
+            @ApiResponse(responseCode="200", description="게시글 조회 성공"),
+            @ApiResponse(responseCode="404", description="해당 id의 게시글이 존재하지 않음")
+    })
+    @Parameters({
+            @Parameter(name = "postId",description = "조회할 게시글의 id", in = ParameterIn.PATH ,required = true),
+    })
+    public ResponseEntity<PostResponseDto> getOnePost(@PathVariable Long postId){
+        PostResponseDto dto=postService.getOnePost(postId);
+        return ResponseEntity.ok().body(dto);
+    }
+    
+    // 팔로잉 중인 유저들의 게시글 전체 조회
+    @GetMapping("/{userId}/followings")   //로그인 구현 후 수정
+    @Operation(summary="팔로잉 게시글 조회", description="현재 팔로잉하는 사람들의 전체 게시글 조회")
+    @ApiResponses(value={
+            @ApiResponse(responseCode="200", description="게시글 조회 성공"),
+            @ApiResponse(responseCode="404", description="해당 id 유저 존재하지 않음")
+    })
+    @Parameters({
+            @Parameter(name = "userId",description = "현재 조회하려는 유저의 id", in = ParameterIn.PATH ,required = true),
+    })
+    public ResponseEntity<List<PostResponseDto>> getAllPostsByFollowing(@PathVariable Long userId){
+        List<PostResponseDto> dtos=postService.getAllPostsByFollowing(userId);
+        return ResponseEntity.ok().body(dtos);
+    }
+
+    // 특정 게시글 수정
+    @PutMapping(value="/{postId}/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)   //로그인 구현 후 수정
+    @Operation(summary="게시글 수정", description="특정 게시글 수정")
+    @ApiResponses(value={
+            @ApiResponse(responseCode="200", description="게시글 수정 성공"),
+            @ApiResponse(responseCode="404", description="해당 id 유저/게시글이 존재하지 않음")
+    })
+    @Parameters({
+            @Parameter(name = "userId",description = "유저 id", in = ParameterIn.PATH ,required = true),
+            @Parameter(name = "postId",description = "게시글 id", in = ParameterIn.PATH ,required = true),
+    })
+    public ResponseEntity<PostResponseDto> updatePost(@PathVariable Long postId, @PathVariable Long userId, @ModelAttribute PostRequestDto postRequestDto){
+        PostResponseDto dto=postService.updatePost(postId, userId, postRequestDto);
+        return ResponseEntity.ok().body(dto);
+    }
+
+    //특정 게시글 삭제
+    @DeleteMapping("/{postId}")
+    @Operation(summary="게시글 삭제", description="특정 id의 게시글 삭제")
+    @ApiResponses(value={
+            @ApiResponse(responseCode="200", description="게시글 삭제 성공"),
+            @ApiResponse(responseCode="404", description="해당 id의 게시글이 존재하지 않음")
+    })
+    @Parameters({
+            @Parameter(name = "postId",description = "삭제할 게시글의 id", in = ParameterIn.PATH ,required = true),
+    })
+    public ResponseEntity<Void> deletePost(@PathVariable Long postId){
+        postService.deletePost(postId);
+        return ResponseEntity.ok().build();
+    }
+
+}
+```
+- `@Tag`
+  
+  API를 그룹화 할 태그명 지정
+
+- `@Operation`
+
+  API에 대한 설명을 작성
+
+- `@ApiResponse`
+
+  응답 코드에 대한 정보를 나타낸다
+
+- `@Parameters`
+
+  입력받는 파라미터에 대한 정보를 나타낸다
+
+![img_7.png](img_7.png)
+![img_9.png](img_9.png)
+![img_12.png](img_12.png)
+
+성공하면 아래와 같은 응답이 뜬다.
+![img_13.png](img_13.png)
+
+
+# 5주차
+### 📍지난주차 리팩토링
+게시글 수정과정에서, 삭제되어야 할 이미지리스트를 받아 기존 이미지 리스트에서 해당 이미지들을 제거해주는 방식으로 이미지 수정을 구현했었다.
+```java
+    public void update(PostRequestDto postRequestDto,List<PostImage> newImages, List<PostImage> deletedImages) {
+        this.content=postRequestDto.getContent();
+        this.images.removeAll(deletedImages);
+        this.images.addAll(newImages);
     }
 ```
+그런데 이미지 삭제와 관련해서 아래와 같은 리뷰를 받았다. 
+![img_14.png](img_14.png)
+
+removeAll 메소드는 PostImage 객체의 동등성을 기준으로 삭제할 항목을 결정하게 된다. 자바에서는 기본적으로 `메모리 주소`로 동등성을 비교하기 때문에 removeAll이 동작하기 위해서는 같은 메모리 주소를 참조하는 객체여야 한다고 한다. 그런데 JPA에서는 영속성 컨텍스트가 다르다면 동일한 데이터베이스 엔티티라도 메모리 주소가 달라 서로 다른 객체로 인식되어 removeAll에서 삭제되지 않을 수 있다고 한다.
+
+cf) 영속성 컨텍스트가 달라지는 경우
+ 1. 트랜잭션 범위가 다를 때 (@Transactional) : 서로 다른 트랜잭션에서 동일한 엔티티를 조회하면 새로운 영속성 컨텍스트가 생성되어 이전 트랜잭션에서 가져온 동일한 엔티티와 다른 인스턴스가 되어버린다.
+2. 지연로딩 방식으로 동일한 엔티티 조회할 때 : 지연로딩을 이용해 동일한 엔티티 조회할 때 JPA는 엔티티를 프록시 객체로 생성하고 이 엔티티에 접근하는 순간 프록시를 초기화 한다. 초기화가 아직 되지 않은 상태라면 따라 동일한 엔티티가 서로 다른 객체로 취급될 수 있어 초기화 여부에 따라 동일 객체 여부가 달라진다.
+
+따라서 equals 메소드와 hashCode 메소드 모두 오버라이딩을 통해 재정의 해주어야 한다!
+
+
+```
+@Entity
+public class PostImage {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="post_image_id")
+    private Long id;
+
+    private String postImageurl;
+    private String originalFileName;
+
+    //하나의 게시글 내에서 이미지 순서를 나타냄(사용자가 지정)
+    private int imageOrder;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="post_id")
+    private Post post;
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PostImage postImage = (PostImage) o;
+        return Objects.equals(id, postImage.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+}
+
+```
+- equals : 기본적으로 equals는 객체의 메모리 주소를 기준으로 비교하므로 두 객체의 메모리 주소가 같을 때만 true를 반환한다. 메모리 주소 값이 아니라 객체의 특정 필드값(id)을 기준으로 비교하고 싶으면 equals 메서드를 오버라이딩 해주면 된다. equals 메서드를 오버라이드하여 id 필드로 비교하게 하면, 영속성 컨텍스트가 달라져도 id 값이 동일하면 같은 객체로 인식하게 되어 위의 List.remove 삭제 기능이 잘 작동하게 된다.
+- hashCode : 기본적으로 객체의 메모리 주소 값을 해싱하여 해시코드를 만든 후 반환한다. 따라서 서로 다른 두 객체는 같은 해시코드를 가질 수 없게 된다. equals()의 결과가 true인 두 객체의 해시코드는 반드시 같아야 하기 때문에 *equals를 오버라이드 할 때 hashCode도 함께 재정의 해주어야 한다*. `return Objects.hash(id)` : id 필드를 기준으로 해시코드를 생성하고 반환하게 되어 id 값이 동일한 객체는 동일한 해시코드를 가지게 된다.
+
+
+📍회원가입
+![img_15.png](img_15.png)
