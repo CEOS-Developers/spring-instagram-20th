@@ -459,3 +459,531 @@ public class CommentServiceTest {
 3. **`getReplies` 테스트**:
     - 부모 댓글 ID를 이용하여 대댓글 리스트를 조회합니다.
     - 부모 댓글에 연결된 대댓글들이 올바르게 조회되는지 검증합니다.
+
+# 4주차
+
+## 1️⃣ 인스타그램의 4가지 HTTP Method API 만들어봐요
+
+### Comment
+
+---
+
+이 API는 게시물에 대한 댓글을 관리하는 엔드포인트를 제공합니다. 사용자는 새로운 댓글을 생성하고, 특정 게시물의 댓글을 조회하고, 특정 댓글의 세부 정보를 가져오며, 댓글을 삭제할 수 있습니다.
+
+### 기본 URL
+
+```bash
+
+/api/comments
+```
+
+### 코드 URL 매핑 구조
+
+- **클래스 수준**: `@RequestMapping("/api/comments")`는 이 클래스 내의 모든 메서드가 `/api/comments`로 시작하는 요청을 처리한다는 것을 의미합니다.
+- **메서드 수준**:
+   - `@PostMapping("/")`: 이 메서드는 `/api/comments/`에 대한 POST 요청을 처리하여 새로운 댓글을 생성합니다.
+   - `@GetMapping("/post/{postId}")`: 이 메서드는 특정 게시물에 대한 댓글을 가져오는 GET 요청을 처리하며, URL 경로에서 `postId`를 변수로 사용합니다.
+   - `@GetMapping("/{commentId}")`: 이 메서드는 특정 댓글을 조회하는 GET 요청을 처리하며, URL 경로에서 `commentId`를 변수로 사용합니다.
+   - `@DeleteMapping("/{commentId}")`: 이 메서드는 특정 댓글을 삭제하는 DELETE 요청을 처리합니다.
+
+### 1. 새로운 데이터를 create하도록 요청하는 API 만들기
+
+- **새로운 댓글 생성**
+- **URL**: `/api/comments/`
+- **메서드**: `POST`
+- **설명**: 특정 게시물과 회원에 연관된 새로운 댓글을 생성합니다.
+- **요청 파라미터**:
+   - `postId` (Long, 필수): 댓글이 추가될 게시물의 ID.
+   - `memberId` (Long, 필수): 댓글을 작성하는 회원의 ID.
+- **요청 본문**:
+   - 댓글 내용을 포함하는 JSON 문자열 (예: `"This is a comment"`).
+- **응답**:
+   - **상태 코드**: `201 Created`
+   - **본문**: 생성된 `CommentDTO` 객체를 반환합니다.
+
+### 예시 요청
+
+```
+POST /api/comments/
+Content-Type: application/json
+{
+    "text": "String"
+}
+
+```
+
+### 예시 응답
+
+```
+HTTP/1.1 201 Created
+Content-Type: application/json
+
+{
+    "commentId": 1,
+    "postId": 1,
+    "memberId": 1,
+    "text": "This is a comment",
+    "timestamp": "2024-01-01T12:00:00"
+}
+
+```
+
+---
+
+### 2. 모든 데이터를 가져오는 API 만들기
+
+- **특정 게시물의 모든 댓글 가져오기**
+- **URL**: `/api/comments/post/{postId}`
+- **메서드**: `GET`
+- **설명**: 특정 게시물에 달린 모든 댓글을 조회합니다.
+- **경로 파라미터**:
+   - `postId` (Long, 필수): 댓글을 조회할 게시물의 ID.
+- **응답**:
+   - **상태 코드**: `200 OK`
+   - **본문**: 해당 게시물의 모든 댓글을 나타내는 `CommentDTO` 객체의 리스트를 반환합니다.
+
+### 예시 요청
+
+```
+
+GET /api/comments/post/1
+```
+
+### 예시 응답
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+[
+    {
+        "commentId": 1,
+        "postId": 1,
+        "memberId": 1,
+        "text": "This is a comment",
+        "timestamp": "2024-01-01T12:00:00"
+    },
+    {
+        "commentId": 2,
+        "postId": 1,
+        "memberId": 2,
+        "text": "This is another comment",
+        "timestamp": "2024-01-01T12:05:00"
+    }
+]
+
+```
+
+---
+
+### 3. 특정 데이터를 가져오는 API 만들기
+
+- **특정 댓글 가져오기**
+- **URL**: `/api/comments/{commentId}`
+- **메서드**: `GET`
+- **설명**: 특정 댓글의 세부 정보를 조회합니다.
+- **경로 파라미터**:
+   - `commentId` (Long, 필수): 조회할 댓글의 ID.
+- **응답**:
+   - **상태 코드**: `200 OK`
+   - **본문**: 요청된 댓글을 나타내는 `CommentDTO` 객체를 반환합니다.
+
+### 예시 요청
+
+```
+
+GET /api/comments/1
+
+```
+
+### 예시 응답
+
+```
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+    "commentId": 1,
+    "postId": 1,
+    "memberId": 1,
+    "text": "This is a comment",
+    "timestamp": "2024-01-01T12:00:00"
+}
+```
+
+---
+
+### 4. 특정 데이터를 삭제 또는 업데이트하는 API
+
+- **특정 댓글 삭제**
+- **URL**: `/api/comments/{commentId}`
+- **메서드**: `DELETE`
+- **설명**: 특정 댓글을 삭제합니다.
+- **경로 파라미터**:
+   - `commentId` (Long, 필수): 삭제할 댓글의 ID.
+- **응답**:
+   - **상태 코드**: `204 No Content`
+   - **본문**: 응답 본문은 없습니다.
+
+### 예시 요청
+
+```
+DELETE /api/comments/1
+```
+
+### 예시 응답
+
+```
+HTTP/1.1 204 No Content
+
+```
+
+![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/a5836003-a8d1-4201-bdfd-b04ef32ee5fb/928b9021-88b0-4177-96eb-4e2298da1f12/image.png)
+
+## 2️⃣ 정적 팩토리 메서드를 사용해서 DTO 사용해봐요
+
+```jsx
+package com.ceos20.spring_instagram.dto;
+
+import com.ceos20.spring_instagram.domain.Comment;
+import lombok.Builder;
+import lombok.Getter;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Builder
+public class CommentDTO {
+    private Long commentId;
+    private Long postId;
+    private Long memberId;
+    private String text;
+    private LocalDateTime timestamp;
+
+    // 정적 팩토리 메서드
+    public static CommentDTO from(Comment comment) {
+        return CommentDTO.builder()
+                .commentId(comment.getCommentId())
+                .postId(comment.getPost().getPostId())
+                .memberId(comment.getMember().getMemberId())
+                .text(comment.getText())
+                .timestamp(comment.getTimestamp())
+                .build();
+    }
+}
+```
+
+### 기존코드
+
+```jsx
+  public Comment addComment(Long postId, Long memberId, String text) {
+        Optional<Post> post = postRepository.findById(postId);
+        Optional<Member> member = memberRepository.findById(memberId);
+
+        if (post.isEmpty() || member.isEmpty()) {
+            throw new IllegalArgumentException("잘못된 포스트 또는 회원 ID입니다.");
+        }
+
+        Comment comment = Comment.builder()
+                .post(post.get())
+                .member(member.get())
+                .text(text)
+                .build();
+
+        return commentRepository.save(comment);
+    }
+```
+
+### DTO사용 후
+
+```jsx
+public CommentDTO addComment(Long postId, Long memberId, String text) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new PostNotFoundException("잘못된 포스트 ID입니다."));
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberNotFoundException("잘못된 회원 ID입니다."));
+
+        Comment comment = Comment.builder()
+                .post(post)
+                .member(member)
+                .text(text)
+                .build();
+
+        Comment savedComment = commentRepository.save(comment);
+        return CommentDTO.from(savedComment);
+    }
+```
+
+`CommentDTO` 객체를 반환하는 것이 `Comment` 객체를 직접 반환하는 것보다 여러 가지 면에서 장점이 있습니다:
+
+1. **데이터 노출 제어**:
+   - **DTO 사용**: `CommentDTO`는 필요한 정보만 포함할 수 있습니다. 예를 들어, 댓글 ID, 댓글 내용, 작성자 ID 등 클라이언트에 필요한 정보만 선택적으로 포함할 수 있습니다.
+   - **직접 반환**: `Comment` 객체를 직접 반환하면, 데이터베이스 엔티티에 포함된 모든 필드가 클라이언트에 노출될 수 있습니다. 이로 인해 보안 및 데이터 노출 문제가 발생할 수 있습니다.
+2. **API 응답의 일관성**:
+   - **DTO 사용**: 여러 엔티티에 대해 통일된 형식으로 DTO를 정의하면 API 응답의 일관성을 유지할 수 있습니다. 클라이언트는 항상 같은 구조의 데이터를 받아보게 됩니다.
+   - **직접 반환**: 다양한 엔티티가 혼합될 경우 응답 구조가 달라질 수 있으며, 클라이언트에서 이를 처리하기 어려워질 수 있습니다.
+3. **의존성 감소**:
+   - **DTO 사용**: 클라이언트는 DTO와 관련된 데이터 계약만 알고 있으면 됩니다. 데이터베이스의 변경 사항이 DTO에 반영되면, 클라이언트가 이 변경을 인식하지 않아도 되므로 유연성이 증가합니다.
+   - **직접 반환**: 클라이언트가 엔티티 구조에 의존하게 되므로, 엔티티 구조가 변경되면 클라이언트의 코드도 수정해야 할 가능성이 높습니다.
+4. **유효성 검증 및 변환**:
+   - **DTO 사용**: DTO를 사용하면 입력 및 출력 데이터를 쉽게 검증하고 변환할 수 있습니다. 필요한 경우 DTO에 유효성 검증 어노테이션을 추가하여 클라이언트에서 보낸 데이터를 검증할 수 있습니다.
+   - **직접 반환**: 엔티티를 직접 반환하면, 입력값의 유효성을 확인하기 어려워질 수 있습니다.
+5. **테스트 용이성**:
+   - **DTO 사용**: DTO를 사용하면 API 테스트 및 단위 테스트가 간편해집니다. DTO의 필드를 통해 특정 동작을 쉽게 검증할 수 있습니다.
+   - **직접 반환**: 엔티티를 반환하는 경우, 데이터베이스에 대한 의존성이 높아져 테스트가 복잡해질 수 있습니다.
+
+⇒ 유연성, 보안, 일관성, 유지보수성을 높일 수 있음
+
+## 3️⃣ Global Exception를 만들어봐요
+
+### 1. 커스텀 예외 클래스 정의
+
+**PostNotFoundException.java**
+
+```java
+package com.ceos20.spring_instagram.global.exception;
+
+public class PostNotFoundException extends RuntimeException {
+    public PostNotFoundException(String message) {
+        super(message);
+    }
+}
+```
+
+**CommentNotFoundException.java**
+
+```java
+package com.ceos20.spring_instagram.global.exception;
+
+public class CommentNotFoundException extends RuntimeException {
+    public CommentNotFoundException(String message) {
+        super(message);
+    }
+}
+```
+
+**MemberNotFoundException.java**
+
+```java
+package com.ceos20.spring_instagram.global.exception;
+
+public class MemberNotFoundException extends RuntimeException {
+    public MemberNotFoundException(String message) {
+        super(message);
+    }
+}
+```
+
+### 2. GlobalExceptionHandler 클래스
+
+전역 예외 핸들러에서 커스텀 예외를 처리할 수 있도록 함
+
+**GlobalExceptionHandler.java**
+
+```java
+package com.ceos20.spring_instagram.global.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(CommentNotFoundException.class)
+    public ResponseEntity<String> handleCommentNotFound(CommentNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(PostNotFoundException.class)
+    public ResponseEntity<String> handlePostNotFound(PostNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(MemberNotFoundException.class)
+    public ResponseEntity<String> handleMemberNotFound(MemberNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleAllExceptions(Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
+    }
+}
+```
+
+```jsx
+    //공통 예외처리 메서드 
+    private ResponseEntity<String> handleException(Exception ex, HttpStatus status) {
+        log.warn("예외 발생: ", ex); // 경고 로그
+        return ResponseEntity.status(status).body(ex.getMessage());
+    }
+}
+```
+
+### CommentService.java
+
+```jsx
+ // 특정 댓글 조회
+    public CommentDTO getCommentById(Long commentId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new CommentNotFoundException("해당 댓글이 존재하지 않습니다."));
+        return CommentDTO.from(comment);
+    }
+```
+
+https://github.com/user-attachments/assets/423fda31-fa40-4db2-83d5-b9934f635b7d
+
+## 4️⃣ Swagger 연동 후 Controller 통합 테스트를 해봐요
+
+```jsx
+	implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.2.0'
+```
+
+https://github.com/user-attachments/assets/5858a98f-2d61-4398-9619-3094f787432e
+
+https://github.com/user-attachments/assets/b938ce32-a9bf-40a1-9459-002c9bd83d25
+
+### CommentControllerTest.java
+
+```jsx
+
+@SpringBootTest
+@AutoConfigureMockMvc
+public class CommentControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private PostRepository postRepository;
+
+    @Autowired
+    private CommentRepository commentRepository;
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+    private Long postId;
+    private Long memberId;
+    private Long commentId;
+
+    @BeforeEach
+    public void setup() {
+        // 테스트 전에 필요한 데이터베이스 초기화
+        commentRepository.deleteAll();
+        postRepository.deleteAll();
+        memberRepository.deleteAll();
+
+        Member member = Member.builder()
+                .membername("testUser")
+                .email("test@example.com")
+                .password("password")
+                .build();
+        memberId = memberRepository.save(member).getMemberId();
+
+        Post post = Post.builder()
+                .member(member)
+                .image("test.jpg")
+                .caption("테스트 포스트")
+                .build();
+        postId = postRepository.save(post).getPostId();
+
+        // 테스트용 댓글 추가
+        Comment comment = Comment.builder()
+                .post(post)
+                .member(member)
+                .text("테스트 댓글입니다.")
+                .build();
+
+        // 댓글을 실제로 추가하여 commentId를 저장
+        commentId = commentRepository.save(comment).getCommentId();
+    }
+
+    @Test
+    public void testCreateComment() throws Exception {
+        // 댓글 생성 API 테스트
+        String json = "새로운 테스트 댓글입니다.";
+
+        mockMvc.perform(post("/api/comments/?postId=" + postId + "&memberId=" + memberId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.text").value("새로운 테스트 댓글입니다."));
+    }
+
+    @Test
+    public void testGetAllCommentsByPost() throws Exception {
+        // 특정 포스트에 대한 모든 댓글 가져오기 API 테스트
+        mockMvc.perform(get("/api/comments/post/{postId}", postId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    public void testGetCommentById() throws Exception {
+        // 댓글을 추가한 후 해당 댓글의 ID를 사용하여 조회 테스트
+        mockMvc.perform(get("/api/comments/{commentId}", commentId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.commentId").value(commentId));
+    }
+
+    @Test
+    public void testDeleteComment() throws Exception {
+        // 댓글을 추가한 후 해당 댓글의 ID를 사용하여 삭제 테스트
+        mockMvc.perform(delete("/api/comments/{commentId}", commentId))
+                .andExpect(status().isNoContent());
+    }
+}
+
+```
+
+### error 처리
+
+https://github.com/user-attachments/assets/2edd79d0-86e8-45b5-b54e-5fb016d6769b
+
+HTTP 상태 코드 404는 요청한 리소스(예: 특정 댓글)가 서버에서 찾을 수 없음을 나타냅니다. 테스트 중 204 상태 코드(성공적인 요청을 나타내지만 응답 본문이 없음을 의미함)를 기대하고 있었지만 404 오류가 발생했기 때문에, 요청한 리소스가 존재하지 않는 상황이 발생
+
+**'com.ceos20.spring_instagram.dto.CommentDTO'의 'from(com.ceos20.spring_instagram.domain.Comment)'을(를) '(com.ceos20.spring_instagram.dto.CommentDTO)'에 적용할 수 없습니다**
+
+```jsx
+
+// 테스트용 댓글 추가
+Comment comment = Comment.builder()
+        .post(post)
+        .member(member)
+        .text("테스트 댓글입니다.")
+        .build();
+
+// 댓글을 실제로 추가하여 commentId를 저장
+commentId = commentRepository.save(comment).getCommentId(); // 추가된 댓글 ID 저장
+commentRepository.save(CommentDTO.from(comment)).getCommentId() 
+
+요약
+CommentDTO.from(comment)는 Comment 엔티티를 CommentDTO로 변환하기 위한 메서드입니다.
+CommentRepository.save() 메서드는 Comment 타입의 객체를 받아야 합니다. 
+CommentDTO를 Comment로 변환하려면, Comment.builder()를 사용하여 
+Comment 객체를 생성한 뒤 저장하는 방식으로 수정
+```
+
+CommentDTO.from(comment)에서는 Comment 타입의 객체를 전달해야 하는데, 현재 commentRepository.save(CommentDTO.from(comment))에서 CommentDTO 타입의 객체를 전달하고 있습니다. 이로 인해 타입 불일치 에러가 발생합니다.
+올바르게 수정하려면, CommentDTO 객체를 Comment 엔티티로 변환하는 부분을 수정하고, Comment 타입을 전달하도록 해야 합니다.
+
+```jsx
+could not execute statement [Cannot delete or update a parent row: a 
+foreign key constraint fails (instagram.comment, CONSTRAINT FKs1slvnkuemjsq2kj4h3vhx7i1 FOREIGN KEY (post_id) REFERENCES post (post_id))] [/* delete for com.ceos20.spring_instagram.domain.Post */delete from post where post_id=?]; SQL [/* delete for com.ceos20.spring_instagram.domain.Post */delete from post where post_id=?]; constraint [null]
+```
+
+이 오류는 외래 키 제약 조건 위반으로 발생합니다. `post`를 삭제하려고 할 때, `comment` 테이블의 `post_id`가 `post` 테이블의 `post_id`를 참조하고 있기 때문에 `post`에 연결된 댓글이 존재하는 경우 해당 `post`를 삭제할 수 없습니다. 데이터베이스는 연결된 댓글이 삭제되지 않은 상태에서 `post` 삭제를 허용하지 않도록 제약 조건을 설정합니다.
+
+- **댓글을 먼저 삭제한 후 포스트를 삭제**: `postRepository.deleteAll()`을 호출하기 전에 `commentRepository.deleteAll()`을 먼저 호출하여 댓글을 삭제하면, 외래 키 제약 조건에 위배되지 않습니다.
+- **연관된 엔티티를 삭제할 때 자동으로 댓글도 삭제**: `Comment`와 `Post` 간의 연관 관계를 설정할 때, `Post` 엔티티의 `comments` 필드에 `@OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)`와 같은 방식으로 `cascade` 속성을 추가하여, `Post` 삭제 시 연관된 `Comment`도 자동으로 삭제되도록 설정할 수 있습니다.
+
+## 5️⃣ 3주차까지 부족한 부분 리팩토링 해주세요
+
+- ~~DTO 사용~~
+- 변수명 통일
+
+좀 더 자세한 에러로그를 확인하기 위해 ./gradlew test -i로 확인

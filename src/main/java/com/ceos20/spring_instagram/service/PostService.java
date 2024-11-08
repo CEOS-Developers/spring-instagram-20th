@@ -69,10 +69,17 @@ public class PostService {
         }
 
         Post post = postOptional.get();
-        post.setCaption(newCaption);
-        post.setImage(newImage);
 
-        return postRepository.save(post); // 업데이트된 포스트 저장
+        // 기존 포스트를 기반으로 새로운 포스트 생성
+        Post updatedPost = Post.builder()
+                .postId(post.getPostId())
+                .member(post.getMember())
+                .image(newImage)
+                .caption(newCaption) 
+                .timestamp(post.getTimestamp())
+                .build();
+
+        return postRepository.save(updatedPost); // 업데이트된 포스트 저장
     }
 
     // 포스트를 삭제하는 메서드
