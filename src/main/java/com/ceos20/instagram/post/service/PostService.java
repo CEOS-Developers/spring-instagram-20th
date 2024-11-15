@@ -58,7 +58,17 @@ public class PostService {
     }
 
     @Transactional
-    public void delete(Long postId){
+    public void delete(Long postId, String nickname){
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new NotFoundException(ExceptionCode.NOT_FOUND_POST));
+
+        User user = userRepository.findByNickname(nickname)
+                .orElseThrow(()-> new NotFoundException(ExceptionCode.NOT_FOUND_USER));
+
+        if(post.getWriter() != user) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
         postRepository.deleteById(postId);
     }
 

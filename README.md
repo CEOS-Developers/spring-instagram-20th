@@ -1,6 +1,436 @@
 # spring-instagram-20th
 CEOS 20th BE study - instagram clone coding
 
+## 5주차
+### Spring Security 주요 객체
+- SecurityContextHolder, SecurityContext, Authentication
+
+  ![img.png](img.png)
+
+  Authentication 객체에는 principal(아이디; username), credential(비밀번호; password) 정보
+  
+    ```java
+    // Security에 로그인한 사용자의 정보를 얻기 위해선
+    SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+    ```
+- AbstractAuthenticationProcessingFilter.java
+    ```java
+    public abstract class AbstractAuthenticationProcessingFilter extends GenericFilterBean implements ApplicationEventPublisherAware, MessageSourceAware {
+
+        public abstract Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException;
+
+        protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException { }
+
+        protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException { }
+    ```
+    인증 필터로 주로 위 3가지 메서드를 구현하게 되며
+    
+    주로  이 필터를 구현한 UsernamePasswordAuthenticationFilter를 사용하고 이를 오버라이딩하게 된다.
+    
+- AbstractAuthenticationToken
+  
+  Authentication(인증)을 구현한 클래스
+  ![img_2.png](img_2.png)
+  Authenticaton 객체를 구현한 AbstractAuthenticationToken 추상클래스가 있고 이를 상속한 UsernamePasswordAuthenticationToken 존재
+    ```java
+    public class UsernamePasswordAuthenticationToken extends AbstractAuthenticationToken {
+    private static final long serialVersionUID = 620L;
+    private final Object principal;
+    private Object credentials;
+    
+  // 아직 인증되지 않은 객체 생성
+    public UsernamePasswordAuthenticationToken(Object principal, Object credentials) {
+        super((Collection)null);
+        this.principal = principal;
+        this.credentials = credentials;
+        this.setAuthenticated(false);
+    }
+    // 모든 인증 완료되면 인증된 생성자로 객체 생성
+    public UsernamePasswordAuthenticationToken(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities) {
+        super(authorities);
+        this.principal = principal;
+        this.credentials = credentials;
+        super.setAuthenticated(true);
+    }
+
+    public static UsernamePasswordAuthenticationToken unauthenticated(Object principal, Object credentials) {
+        return new UsernamePasswordAuthenticationToken(principal, credentials);
+    }
+
+    public static UsernamePasswordAuthenticationToken authenticated(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities) {
+        return new UsernamePasswordAuthenticationToken(principal, credentials, authorities);
+    }
+
+    public Object getCredentials() {
+        return this.credentials;
+    }
+
+    public Object getPrincipal() {
+        return this.principal;
+    }
+
+    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+        Assert.isTrue(!isAuthenticated, "Cannot set this token to trusted - use constructor which takes a GrantedAuthority list instead");
+        super.setAuthenticated(false);
+    }
+
+    public void eraseCredentials() {
+        super.eraseCredentials();
+        this.credentials = null;
+    }
+  ```
+
+- AuthenticationManger 
+  여러 AuthenticatonProvider(인증공급자)를 관리하고 인증 요청을 처리하는 인터페이스
+  
+    인증객체토큰을 Provider에게 받아서 AuthenticationFilter에게 return
+    
+    ```java
+    Authentication authenticate(Authentication authentication) throws AuthenticationException;
+    ```
+    Authentication 객체를 통해 인증 수행하는 메서드 구현
+
+- AuthenticationProvider
+  인증 프로세스를 담당하는 인터페이스
+  
+    로직 실행 뒤 인증 객체 토큰을 AuthenticationManger에게 return
+    ```java
+    // Authentication 객체를 통해 사용자 이름과 비밀번호 확인후 성공 시 인증된 Authentication 객체 반환
+    Authentication authenticate(Authentication authentication) throws AuthenticationException;
+  
+    // AuthenticationProvider가 특정 인증 클래스 지원하는지 확인
+    boolean supports(Class<?> authentication);
+    ```
+- UserDetailsService
+    
+    사용자 이름으로 사용자 세부 정보를 검색하는 객체
+- UserDetails
+    
+    스프링 시큐리티가 관리하는 사용자 객체
+
+### securityConfig 설정
+```java
+@Bean
+    public BCryptPasswordEncoder bCryptPasswordEncoder(){
+
+        return new BCryptPasswordEncoder();
+    }
+```
+
+```java
+    // 시큐리티 필터 설정
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtUtil jwtUtil) throws Exception {
+        final String[] ALL_URL = new String[]{"/accounts/login", "/accounts/user/signup"};
+        // CSRF 보호 기능을 비활성화
+        http
+                .csrf((auth) -> auth.disable());
+        // 폼 로그인 비활성화
+        http    
+                .formLogin((auth) -> auth.disable());
+        // 리소스(URL)의 권한 설정
+        http
+                .authorizeHttpRequests((auth) -> auth
+                        .requestMatchers(ALL_URL).permitAll()
+                        .anyRequest().authenticated());
+        // 세션 관리 설정
+        http
+                .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        
+        return http.build();
+
+
+    }
+```
+csrf: Cross Site Request Forgery, 의도치 않은 위조 요청을 보냈을 때 csrf protection을 적용하면 html에서 csrf 토큰이 포함되어 있어야 요청을 받아들이게 함으로써 위조 요청 방지
+
+Spring security는 csrf protection을 제공하지만 disable!
+
+요즘 rest api를 이용하는 서버스는 session 기반 인증과 달리 토큰 방식을 사용! 따라서 stateless하기 때문에 따로 서버에 인증 정보를 보관하지 않음!
+```java
+    // authenticationManger를 Bean 등록
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+```
+### 회원가입 구현
+```java
+public class AuthService implements UserDetailsService {
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private UserRepository userRepository;
+
+    @Transactional
+    public User create(JoinRequestDto joinRequestDto) {
+        String nickname = joinRequestDto.getNickname();
+        Boolean isExist = userRepository.existsByNickname(nickname);
+        if (isExist) throw new BadRequestException(ExceptionCode.ALREADY_EXIST_NICKNAME);
+
+        String encPassword = bCryptPasswordEncoder.encode(joinRequestDto.getPassword());
+        User user = joinRequestDto.toEntity(joinRequestDto, encPassword);
+
+        return userRepository.save(user);
+
+    }
+}
+```
+=> 회원가입 후 유저 정보가 전부 response로 들어감
+
+### 로그인 구현
+JwtAuthenticationFilter -> 인증 수행에 대한 filter
+```java
+@Slf4j
+public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+    // nickname과 password를 통해 로그인 시도
+    @Override
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
+        String contentType = request.getContentType();
+        String nickname = "";
+        String password = "";
+        // JSON 형식에서 사용하는 방식으로 로그인
+        if(contentType.equals(MediaType.APPLICATION_JSON_VALUE)){
+            try {
+                LoginRequestDto loginRequest = new ObjectMapper().readValue(request.getReader(), LoginRequestDto.class);
+                nickname = loginRequest.getNickname();
+                password = loginRequest.getPassword();
+            } catch (IOException e) {
+                throw new AuthenticationServiceException("잘못된 key, name으로 요청했습니다.", e);
+            }
+        }
+        //HTML 폼에서 사용하는 방식으로 로그인
+        else if(contentType.equals(MediaType.APPLICATION_FORM_URLENCODED_VALUE)) {
+            nickname = this.obtainPassword(request);
+        }
+        
+        // 인증되기 전, 인증 객체 생성
+        UsernamePasswordAuthenticationToken unauthenticated = new UsernamePasswordAuthenticationToken(nickname, password);
+        //인증 매니저를 통해  인증 처리 -> 유효할 경우 Authentication 객체를 반환
+        return super.getAuthenticationManager().authenticate(unauthenticated);
+    }
+    
+    // 인증 성공 시 실행하는 메서드
+    @Override
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,Authentication authResult) throws IOException, ServletException {
+        log.info("Security Login >> 인증 성공");
+        final String nickname = authResult.getName();
+
+        AuthenticationSuccessHandler handler = this.getSuccessHandler();
+        handler.onAuthenticationSuccess(request, response, authResult);
+    }
+
+    // 인증 실피 시 실행하는 메서드
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
+        log.info("Security Login >> 인증 실패");
+
+        AuthenticationFailureHandler handler = this.getFailureHandler();
+        handler.onAuthenticationFailure(request, response, failed);
+    }
+}
+
+```
+
+securityConfig
+```java
+//로그인 인증 필터
+@Bean
+    public LoginAuthenticationFilter loginAuthenticationFilter() throws Exception {
+        LoginAuthenticationFilter loginAuthenticationFilter = new LoginAuthenticationFilter();
+        loginAuthenticationFilter.setAuthenticationManager(authenticationManager(authenticationConfiguration));
+        // 로그인 경로 설정, Spring Security는 /login 경로로 요청 처리 -> /accounts/login으로 변경
+        loginAuthenticationFilter.setFilterProcessesUrl("/accounts/login");
+        // 로그인 성공 했을 때 실행
+        loginAuthenticationFilter.setAuthenticationSuccessHandler(loginSuccessHandler); 
+        // 로그인 실패 했을 때 실행
+        loginAuthenticationFilter.setAuthenticationFailureHandler(loginFailHandler);    
+        return loginAuthenticationFilter;
+    }
+
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
+    // CORS 설정
+    http.cors((cors -> cors.configurationSource(new CorsConfigurationSource() {
+        @Override
+        public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+            CorsConfiguration configuration = new CorsConfiguration();
+            // 지정된 도메인과 HTTP 메서드만 허용
+            configuration.setAllowedOrigins(List.of(ALLOW_CROSS_ORIGIN_DOMAIN));
+            configuration.setAllowedMethods(List.of(ALLOW_METHODS));
+            // 모든 HTTP 헤더 허용
+            configuration.setAllowedHeaders(Collections.singletonList("*"));
+            // 쿠키나 인증 정보를 포함한 요청 허용
+            configuration.setAllowCredentials(true);
+            // CORS preflight 요청 응답 시간 1시간 동안 캐시
+            configuration.setMaxAge(3600L);
+
+        return configuration;
+        }
+    })));
+    // 기존 UsernamePasswordAuthenticationFilter를 대체
+    http
+          .addFilterAt(loginAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+}
+```
+token을 발급하고 token에서 정보를 추출할 수 있는 JwtUtil
+```java
+// token 생성
+public String generateAccessToken(String nickname, String roles) {
+        Claims claims = (Claims) Jwts.claims().setSubject(nickname);
+        claims.put("roles", roles);
+        Date now = new Date();
+        return Jwts.builder()
+                .setClaims(claims)
+                .claim("type", "access")
+                .setIssuedAt(now)
+                .setExpiration(new Date(now.getTime() + ACCESS_TOKEN_VALIDITY))
+                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .compact();
+    }
+
+// Request의 Header에서 token 값
+public String resolveToken(HttpServletRequest request) {
+  return request.getHeader("X-AUTH-TOKEN");
+}
+
+// 토큰의 유효성 + 만료일자 확인
+public boolean validateToken(String token) {
+  try {
+    Jws<Claims> claims = Jwts.parser().setSigningKey(secretKey).build().parseClaimsJws(token);
+    return !claims.getBody().getExpiration().before(new Date());
+  } catch (Exception e) {
+    return false;
+  }
+}
+```
+인증 성공 / 실패 시 실행하는 handler 구현
+```java
+@Override
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String nickname = userDetails.getUsername();
+
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        String role = authorities.stream().findFirst().get().getAuthority();
+
+        // accessToken은 헤더로 refreshToken은 쿠키에 넣어 전달
+        String accessToken = jwtUtil.generateAccessToken(nickname, role);
+        String refreshToken = jwtUtil.generateRefreshToken(nickname, role);
+        
+        Cookie refreshTokenCookie = createCookie(refreshToken, "refreshToken");
+        response.addHeader("Authorization", "Bearer " + accessToken);
+
+        String jsonResponse = new ObjectMapper().writeValueAsString(new LoginResponseDto(HttpServletResponse.SC_OK, "로그인 성공"));
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.toString());
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.getWriter().write(jsonResponse);
+        
+        response.addCookie(refreshTokenCookie);
+    }
+```
+
+```java
+@Slf4j
+@RequiredArgsConstructor
+public class JwtValidationFilter extends OncePerRequestFilter {
+    private final JwtUtil jwtUtil;
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+        String token = jwtUtil.resolveToken(request);
+
+        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            if (token != null && jwtUtil.validateToken(token)) {
+                Authentication authentication = jwtUtil.getAuthentication(token);
+
+                String nickname = jwtUtil.getUserNickname(token);
+
+                User user = User.builder()
+                        .nickname(nickname)
+                        .password("password")
+                        .build();
+
+                CustomUserDetails customUserDetails = new CustomUserDetails(user);
+
+                Authentication authToken =
+                        new UsernamePasswordAuthenticationToken(nickname, null, List.of());
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+
+
+                filterChain.doFilter(request, response);
+                return;
+            }
+        }
+
+
+
+    }
+}
+```
+token 정보를 받아서 검증하고 인증된사용자 정보를 Securityontext에 설정하는 역할
+
+OncePerRequestFilter를 상속받아서 요청마다 한번만 실행
+
+securityConfig 수정
+
+```java
+    http
+        .addFilterBefore(new JwtValidationFilter(jwtUtil), JwtAuthenticationFilter.class)
+        .addFilterAt(loginAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+```
+JwtValidationFilter가 JwtAuthenticationFilter 앞에서 실행
+
+Jwt 검즈을 하고 실패하면 그 정보를 기반으로 AuthenticationFilter 실행
+
+
+### Redis
+Redis: 메모리 기반의 데이터 저장소
+
+키-밸류 데이터 구조에 기반한 다양한 형태의 자료 구조 제공
+
+=> 빠른 처리속도가 장점이지만 메모리에 저장하기에 저장 공간에 제약이 있다는 단점이 있음!
+
+Redis -> I/O가 빈번한 데이터를 저장할 때 사용하기 좋고, 사용자 세션을 유지하고 불러오고 여러 활동을 추적할 때 효과적으로 사용 가능
+
+jwt refreshToken을 해킹 당했을 때 accessToken을 재발급 할 수 있는데 이때 accessToken의 소유자가 정당한 소유자인지를 확인하기 위해 db에 저장해 사용하는데 이때 가장 적합한 db가 redis라고 합니다...!
+
+```java
+@Override
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+        ...   
+        redisService.save(nickname, refreshToken, Duration.ofMillis(jwtUtil.getExpiration(refreshToken)));
+        ...  
+}
+
+```
+Redis에 refreshToken 유효시간만큼 캐시
+
+AuthController
+유효성 검사 후 accessToken을 재발급한 토큰을 다시 header로 전송
+```java
+@PostMapping("/token/refresh")
+    public ResponseEntity<String> reissue(HttpServletRequest request, HttpServletResponse respone, @CookieValue(name="refreshToken", required = false) String refreshToken) {
+        if (refreshToken == null) {
+            return ResponseEntity.badRequest().body("Refresh token is required");
+        }
+
+        if (!jwtUtil.validateToken(refreshToken)) {
+            return ResponseEntity.badRequest().body("refreshToken expired");
+        }
+
+        try {
+            String accessToken = authService.reissue(refreshToken);
+            respone.setHeader("Authorization", "Bearer " + accessToken);
+
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+```
+
+
 ## 4주차
 ### 1. 인스타그램의 4가지 HTTP Method API
 1. 새로운 데이터 생성

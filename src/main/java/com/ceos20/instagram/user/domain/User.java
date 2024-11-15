@@ -72,6 +72,9 @@ public class User {
     // 생일
     private LocalDate birth;
 
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
     public void increaseFollowingCount() {
         followingCount++;
     }
