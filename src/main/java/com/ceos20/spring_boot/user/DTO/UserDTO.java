@@ -6,33 +6,18 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
 public class UserDTO {
-    @Getter
-    @Setter
+
     private Long userId;
-    @Getter
-    @Setter
     private String username;
-    @Getter
-    @Setter
     private String password;
-    @Getter
-    @Setter
     private String gender;
-    @Getter
-    @Setter
     private LocalDateTime birthday;
-    @Getter
-    @Setter
     private String profileImage;
-    @Getter
-    @Setter
     private Long uploadPost;
-    @Getter
-    @Setter
     private Long followNum;
-    @Getter
-    @Setter
     private Long followingNum;
 
     public UserDTO() {}

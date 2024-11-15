@@ -1547,3 +1547,237 @@ Customer만 즉시로딩 하고 싶을 때
         List<Order> findAll();
     }
     ```
+
+# 🌳 JWT 인증 방법
+
+## 🪴 로그인 인증
+
+### 🌱 로그인 인증은 왜 하는 걸까?
+
+HTTP 통신으로 요청하면 응답을 한 후 종료되는 stateless 특징 때문에 연결이 끊어지므로 누가 로그인 중인지를 기억해야 하기 때문이다.
+
+### 🌱 4가지 인증방식
+
+**Cookie**
+
+- key-value 쌍으로 이루어진 문자열
+- 사용자 브라우저에 저장
+- 4KB 이하의 한정적인 저장 공간으로 용량이 제한됨
+- 브라우저마다 쿠키 지원 형태가 달라 브라우저간 공유가 불가능
+- 보안에 취약하다는 단점(요청시 쿠키의 값을 그대로 보내기 때문)
+- httpOnly flag로 클라이언트 단에서의 접근으로부터는 보호 가능
+- 요청마다 쿠키를 담아 보내므로 쿠키 사이즈가 커지면 네트워크 부하가 심해짐
+- Cookie 인증 방식
+    
+    ![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/d6cd7a95-d578-4984-bc27-c7e8cb6ebb02/287bec0a-d20e-49e8-a756-c88be00e3f00/image.png)
+    
+    1. 처음에 클라이언트는 쿠키 없이 요청을 보낸다
+    2. 서버는 이에 대한 응답을 할 때 클라이언트에 저장하고 싶은 정보를 응답 헤더의 Set-Cookie에 저장된 쿠기를 담아 보낸다
+    3. 이후 클라이언트는 요청을 보낼 때마다 요청 헤더의 Cookie에 저장된 쿠키를 담아 보낸다
+    4. 서버는 쿠키에 담긴 정보를 통해 클라인언트가 누군지 식별하거나 정보를 바탕으로 광고를 띄운다
+
+**Session**
+
+- Key/Value 쌍으로 이루어짐.
+- 쿠키가 보안에 취약하기에 비밀번호같은 민감한 인증 정보를 브라우저가 아닌 서버 측에 저장하고 관리하는 것
+- 서버 메모리나 서버 로컬 파일 또는 데이터 베이스에 저장(세션 저장소에 저장, 추가적인 저장 공간이 필요)
+- 사용자 식별자인 session id를 저장과 정보를 저장
+- 사용자가 많아지면 정보를 찾는 데이터 매칭에 오랜 시간이 걸리면서 부하가 가해짐
+- 쿠키에 session id를 저장
+- 위의 쿠키가 노출되더라도 session id가 개인정보를 가지지 않아 1번째 쿠키 인증보다는 안전하지만 해커가 세션 ID 자체를 탈취하여 위장하여 접근할 수 있다는 한계가 있음(하이재킹 공격)
+- Session 인증 방식
+    
+    ![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/d6cd7a95-d578-4984-bc27-c7e8cb6ebb02/00f7c9d9-3482-4116-a18c-297b3b6f93e5/image.png)
+    
+    1. 사용자가 로그인한다.
+    2. 서버는 회원 확인 후 세션 저장소에 Session ID를 저장한다.
+    3. 로그인에 대한 응답으로 Cookie에 Session ID를 담아 전달한다.
+    4. 사용자가 요청할 때마다 Session ID가 담긴 Cookie와 함께 보낸다.
+    5. 서버는 세션 저장소에 Session ID와 일치하는 지 확인한다.
+    6. Session ID가 일치하면 응답을 보낸다.
+
+**JWT(JSON Wev Token)**
+
+- 사용자를 인증하고 식별하기 위한 정보들을 암호화시킨 토큰
+- JSON 데이터를 URL로 이용할 수 있는 문자(Base64 URL-safe Encode)로 인코딩하여 직렬화한 것.
+- 전자 서명도 있어 JSON의 변조를 체크할 수 있음
+- 쿠키를 통해 클라이언트에 저장
+- 단순히 HTTP 요청시 헤더에 토큰을 첨부하는 것만으로 데이터를 요청하고 응답을 받아올 수 있음
+- '.'을 기준으로 Header, Payload, Signature 나누어짐
+    
+    ![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/d6cd7a95-d578-4984-bc27-c7e8cb6ebb02/34bb0813-9126-47dd-81b3-2ddc81a3bbef/image.png)
+    
+- JWT 인증 방식
+    
+    JWT는 Access Token만으로도 인증 방식을 구현할 수 있음. 하지만 한 번 발급되면 유효기간이 만료될 때까지 삭제를 할 수 없어 만료 전에 해커에게 정보가 털린다면 대처할 방법이 없음. 그렇다고 유효기간을 짧게 하면 자주 인증해야된다는 불편함이 생김. 이에 Refresh Token을 같이 발급하여 문제를 해결하고 있음. 
+
+    Refresh Token이 탈취될 수도 있지 않을까?
+    
+    Access Token처럼 똑같이 탈취당할 때의 취약점이 있다. 하지만 다른 점이 있다면 매 요청마다 HTTP 통신으로 노출이되는 Access Token과 달리, Access Token이 만료됐을 경우에만 네트워크 통신으로 Refresh Token을 서버로 보내기 때문에 탈취될 위험이 적다는 보안의 이점이 있다.
+    
+    
+
+![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/d6cd7a95-d578-4984-bc27-c7e8cb6ebb02/ee9e9399-ea42-4fb3-8669-c8b99d568298/image.png)
+
+1. 사용자가 로그인한다
+2. 서버는 회원 확인 후 서명된 JWT 생성하여 클라이언트에 응답한다 이때 Access Token과 Refresh Token을 같이 전달한다 
+3. 사용자가 요청할 때마다 Access Token와 함께 보낸다
+4. 서버에서 Access Token을 검증한다 
+5. 검증이 완료되면 응답을 보낸다
+6. Access Token 만료되었다
+7. 사용자가 Access Token과 함께 데이터를 요청한다
+8. 서버에서 Access Token이 만료된 것을 확인한다
+9. 만료되었다는 것을 알려주는 응답을 보낸다
+10. 사용자는 만료 응답을 받고 Access Token과 Refresh Token을 같이 담아 발급 요청을 보낸다
+11. Refresh Token을 확인한 후 Access Token을 발급한다
+12. Access Token과 함께 응답을 보낸다
+
+**OAuth(Open Authorization)**
+
+- 별도의 회원가입 없이 외부 서비스에서도 인증을 가능하게 하고 해당 서비스의 API를 이용하게 해주는 프로토콜. 현재는 2.0.
+- 인터넷 사용자들이 비밀번호를 제공하지 않고 다른 웹사이트 상의 자신들의 정보에 대해 웹사이트나 애플리케이션의 접근 권한을 부여할 수 있는 공통적인 수단으로서 사용되는, 접근 위임을 위한 개방형 표준
+- OAuth는 여러 곳에 개인정보를 제공하고 싶지 않은 점으로 생긴 이유가 큼. 여러 곳에 제공하게 되면 피싱에 둔감해지고 무엇보다 안전하다는 보장이 없기 때문
+- OAuth 인증 방식
+    
+    ![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/d6cd7a95-d578-4984-bc27-c7e8cb6ebb02/243810d3-52e5-48c3-abd8-fbea5dc7133d/image.png)
+    
+    1. 자원 소유자(사용자)가 구글 로그인을 요청한다.
+    2. 클라이언트는 인증 서버에 로그인 페이지를 요청한다.
+    3. 인증 서버가 로그인 페이지를 제공한다.
+    4. 제공받은 로그인 페이지에 ID와 비밀번호를 입력한다.
+    5. 입력받은 값으로 인증 서버에 요청한다.
+    6. 인증 서버에 Authorization code를 발급한다.
+    7. 이 code로 인증 서버에 Access Token를 요청한다.
+    8. 인증 서버에서 Access Token을 발급해준다.
+    9. 인증이 완료되었다.
+    10. 자원 서버에 Access Token을 담아 데이터를 요청한다.
+    11. Access Token을 검증 후 응답을 준다.
+    
+    
+    만약 Access Token이 만료됐거나 위조되었다면, Client는 Authorization Server에 Refresh Token을 보내 Access Token을 재발급 받음
+    
+
+### 🌱 레퍼런스
+
+[https://velog.io/@gusdnr814/로그인-인증-4가지-방법](https://velog.io/@gusdnr814/%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EC%9D%B8%EC%A6%9D-4%EA%B0%80%EC%A7%80-%EB%B0%A9%EB%B2%95)
+
+[https://velog.io/@dee0518/로그인-인증-방식](https://velog.io/@dee0518/%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EC%9D%B8%EC%A6%9D-%EB%B0%A9%EC%8B%9D)
+
+
+# 🌳 엑세스 토큰 발급
+
+## 🪴 TokenProvider 클래스
+
+Spring Security와 JWT를 사용하여 Access Token을 생성하고 검증하는 역할
+
+**변수 및 상수**
+
+- `secret` : 토큰을 암호화하고 검증하는 데 필요한 비밀 키. 서버에서만 알고 있어야 함
+- `TOKEN_VALIDITY_IN_MILLISECONDS` : 토큰이 얼마 동안 유효한지 설정하는 시간. e.g. 1시간(= 3600000밀리초) 동안 유효한 토큰을 만들 수 있음
+- `BEARER_PREFIX` : `Authorization` 헤더에 토큰을 붙일 때 사용하는 "Bearer "라는 문자열
+
+**토큰 발급(createAccessToken)**
+
+사용자에게 JWT 토큰을 만들어주는 메서드
+
+- 사용자가 로그인하면, 이 메서드가 사용자 ID와 권한 정보를 이용해 새로운 토큰을 만듦
+- 토큰에 들어가는 정보는 사용자 ID와 권한(e.g. ROLE_USER 또는 ROLE_ADMIN) 등이 있으며, 이 정보는 Payload 부분에 저장됨
+- 생성된 토큰에는 유효기간이 설정되며, 만료 시간 이후에는 더 이상 사용할 수 없음
+
+**토큰에서 사용자 정보 추출(getTokenUserId)**
+
+JWT 토큰에서 사용자 ID를 꺼내오는 메서드
+
+- 토큰의 Payload 부분에서 사용자 ID 정보를 읽어오고, 이를 통해 누구의 요청인지 알 수 있음
+
+**인증 정보 생성(getAuthentication)**
+
+토큰을 바탕으로 Spring Security가 이해할 수 있는 인증 정보를 생성
+
+- `UserDetailsService`를 사용해 토큰에서 추출한 사용자 ID로 사용자 정보를 가져옴
+- 이 정보를 이용해 `UsernamePasswordAuthenticationToken` 객체를 만들고, Spring Security가 해당 사용자를 인증할 수 있도록 함
+
+**토큰의 유효성 검사(validateAccessToken)**
+
+토큰이 유효한지, 즉 조작되거나 만료되지 않았는지 검사하는 메서드
+
+- 유효한 토큰이면 `true`를 반환하고, 그렇지 않으면 `false`를 반환
+    
+    e.g. 예를 들어, 만료된 토큰이라면 다시 로그인하거나, 리프레시 토큰으로 새 토큰을 받아야 함
+    
+
+**초기 설정(afterPropertiesSet)**
+
+클래스가 생성된 후 비밀 키(`secret`)를 기반으로 서명에 사용할 실제 키(`key`)를 준비하는 메서드입니다.
+
+- 서버가 이 키를 사용해 토큰에 서명하고, 검증할 때도 이 키로 확인
+
+## 🪴 customfilter 내용 채우기
+
+`JwtAuthenticationFilter` : Spring Security의 커스텀 필터. 사용자가 요청을 보낼 때마다 JWT 토큰을 검증해 사용자 인증을 처리하는 역할
+
+→ `OncePerRequestFilter`를 상속해서 요청당 한 번만 실행되도록 구성
+
+### 🌱 `doFilterInternal` 메서드 구현
+
+- 코드 구조
+    
+    ```java
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+    
+        // 1. 요청 헤더에서 토큰을 추출
+        String token = tokenProvider.getAccessToken(request);
+    
+        // 2. 토큰이 존재하고, 유효한지 확인
+        if (token != null && tokenProvider.validateAccessToken(token)) {
+    
+            // 3. 유효한 토큰이라면, 토큰에서 인증 정보를 가져오기
+            Authentication authentication = tokenProvider.getAuthentication(token);
+    
+            // 4. SecurityContext에 인증 정보를 설정
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        }
+    
+        // 5. 다음 필터로 요청을 넘기기
+        filterChain.doFilter(request, response);
+    }
+    
+    ```
+    
+
+**요청 헤더에서 토큰 추출**
+
+`TokenProvider`의 `getAccessToken(request)` 메서드를 사용하여 `Authorization` 헤더에서 토큰을 추출
+
+이때 Bearer 접두사를 제거하고 실제 JWT 토큰만 반환하게 됨
+
+→ `Authorization: Bearer [JWT토큰]`에서 `[JWT토큰]` 부분을 추출
+
+**토큰 유효성 검사**
+
+`TokenProvider`의 `validateAccessToken(token)` 메서드를 사용하여 토큰이 유효한지 검사
+
+유효한 토큰이라면 다음 단계로 넘어가고, 만료되었거나 조작된 토큰이라면 인증 절차를 진행하지 않고 다음 필터로 넘김
+
+**유효한 토큰일 경우 인증 정보 생성**
+
+`TokenProvider`의 `getAuthentication(token)` 메서드를 호출하여 토큰에서 사용자 정보를 추출하고, 이를 기반으로 `Authentication` 객체를 생성
+
+이 객체는 사용자 ID와 권한 등의 정보를 포함하며, Spring Security가 요청한 사용자를 인식하는 데 사용됨
+
+**SecurityContext에 인증 정보 설정**
+
+`SecurityContextHolder.getContext().setAuthentication(authentication)`을 통해 Spring Security의 `SecurityContext`에 인증 정보를 저장
+
+이렇게 하면 요청이 처리되는 동안 서버가 해당 사용자를 인증된 상태로 인식하게 됨
+
+**다음 필터로 요청 전달**
+
+`filterChain.doFilter(request, response)`는 요청을 다음 필터로 전달하는 역할
+
+이 부분이 있어야 요청이 정상적으로 컨트롤러로 전달됨
+
+만약 이 메서드를 호출하지 않으면, 요청이 여기서 멈추고 더 이상 진행되지 않음

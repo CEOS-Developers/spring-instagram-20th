@@ -12,7 +12,6 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @Builder
 public class Post {
-    //ㅇㅓ노테이션
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
