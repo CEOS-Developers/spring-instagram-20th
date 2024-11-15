@@ -15,7 +15,7 @@ public class ExceptionResponse {
         this.message = message;
     }
 
-    public static ExceptionResponse from(NotFoundException e) {
-        return new ExceptionResponse(e.getStatus(), e.getMessage());
+    public static ExceptionResponse from(HttpStatus status, String message) {
+        return new ExceptionResponse(status, message);
     }
 }

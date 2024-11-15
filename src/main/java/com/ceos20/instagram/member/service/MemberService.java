@@ -1,13 +1,14 @@
 package com.ceos20.instagram.member.service;
 
+import com.ceos20.instagram.auth.dto.SignUpRequest;
 import com.ceos20.instagram.global.exception.ExceptionCode;
 import com.ceos20.instagram.global.exception.NotFoundException;
 import com.ceos20.instagram.member.domain.Member;
 import com.ceos20.instagram.member.dto.GetMemberInfoResponse;
-import com.ceos20.instagram.member.dto.SaveMemberRequest;
 import com.ceos20.instagram.member.dto.UpdateMemberInfoRequest;
 import com.ceos20.instagram.member.repository.MemberRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,12 +18,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public Long saveUser(SaveMemberRequest saveMemberRequest) {
+    public void saveMember(SignUpRequest signUpRequest) {
 
-        Member member = saveMemberRequest.toEntity();
-        return memberRepository.save(member).getId();
+        Member member = signUpRequest.toEntity(passwordEncoder);
+        memberRepository.save(member);
     }
 
     @Transactional
@@ -46,5 +48,20 @@ public class MemberService {
                 .orElseThrow(() -> new NotFoundException(ExceptionCode.NOT_FOUND_MEMBER));
 
         return GetMemberInfoResponse.fromEntity(member);
+    }
+
+    public Member getMemberByNickname(String nickname) {
+
+        Member member = memberRepository.findByNickname(nickname)
+                .orElseThrow(() -> new NotFoundException(ExceptionCode.NOT_FOUND_MEMBER));
+        return member;
+    }
+
+    public Boolean nicknameAlreadyExists(String nickname) {
+        return memberRepository.existsByNickname(nickname);
+    }
+
+    public Boolean emailAlreadyExists(String email) {
+        return memberRepository.existsByEmail(email);
     }
 }

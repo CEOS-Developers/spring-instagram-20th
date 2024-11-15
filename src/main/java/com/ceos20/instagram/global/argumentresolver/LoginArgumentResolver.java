@@ -5,6 +5,9 @@ import com.ceos20.instagram.member.domain.Member;
 import com.ceos20.instagram.member.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -29,11 +32,13 @@ public class LoginArgumentResolver implements HandlerMethodArgumentResolver {
         return hasLoginAnnotation && isMemberType;
     }
 
-    // 추후 jwt로 현재 로그인한 Member 찾아 반환할 예정
     @Override
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
                                   NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
 
-        return memberRepository.findById(1L).orElse(null);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String nickname = userDetails.getUsername();
+        return memberRepository.findByNickname(nickname).orElse(null);
     }
 }

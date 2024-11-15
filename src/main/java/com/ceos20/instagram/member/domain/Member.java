@@ -29,6 +29,9 @@ public class Member {
 
     private String imageUrl;
 
+    @Enumerated(EnumType.STRING)
+    private MemberRole role = MemberRole.MEMBER;
+
 
     // user 정보 수정
     public void updateInfo(String username, String nickname, String password, String email, String imageUrl) {
