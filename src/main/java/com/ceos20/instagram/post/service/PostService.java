@@ -1,10 +1,10 @@
 package com.ceos20.instagram.post.service;
 
 
+import com.ceos20.instagram.comment.domain.Comment;
+import com.ceos20.instagram.comment.repository.CommentLikeRepository;
 import com.ceos20.instagram.comment.repository.CommentRepository;
-import com.ceos20.instagram.comment.service.CommentService;
 import com.ceos20.instagram.follow.domain.Follow;
-import com.ceos20.instagram.follow.repository.FollowRepository;
 import com.ceos20.instagram.follow.service.FollowService;
 import com.ceos20.instagram.global.exception.ExceptionCode;
 import com.ceos20.instagram.global.exception.ForbiddenException;
@@ -13,11 +13,9 @@ import com.ceos20.instagram.post.domain.Post;
 import com.ceos20.instagram.post.domain.PostImage;
 import com.ceos20.instagram.post.dto.PostRequestDto;
 import com.ceos20.instagram.post.dto.PostResponseDto;
-import com.ceos20.instagram.post.repository.PostImageRepository;
 import com.ceos20.instagram.post.repository.PostLikeRepository;
 import com.ceos20.instagram.post.repository.PostRepository;
 import com.ceos20.instagram.user.domain.User;
-import com.ceos20.instagram.user.repository.UserRepository;
 
 import com.ceos20.instagram.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -25,9 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +39,7 @@ public class PostService {
     //순환참조 막기 위해 repository 사용
     private final PostLikeRepository postLikeRepository;
     private final CommentRepository commentRepository;
+    private final CommentLikeRepository commentLikeRepository;
 
 
     // 게시글 생성
@@ -127,10 +125,15 @@ public class PostService {
         return PostResponseDto.from(target);
     }
 
-    //특정 게시글 삭제
+    //특정 게시글 삭제 (post_id를 외래키로 가지는 엔티티들 모두 삭제 해주고나서 post 삭제해야함)
     @Transactional
     public void deletePost(Long postId){
         Post target=postRepository.findById(postId).orElseThrow(()-> new NotFoundException(ExceptionCode.NOT_FOUND_POST));
+        List<Long> commentIds=commentRepository.findByPostId(postId)
+                .stream()
+                .map(comment -> comment.getPost().getId())
+                .toList();
+        commentLikeRepository.deleteByPostIdsIn(commentIds); //comment삭제 하기 전에 comment를 의존하는 commentLike도 삭제해주어야 함
         commentRepository.deleteByPostId(postId);
         postLikeRepository.deleteByPostId(postId);
         postImageService.deleteAllImages(postId); // s3에서 이미지 삭제. db 말고.
