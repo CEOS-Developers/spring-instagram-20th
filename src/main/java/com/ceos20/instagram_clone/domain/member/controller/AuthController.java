@@ -30,12 +30,12 @@ public class AuthController {
     @Operation(summary = "회원가입", description = "회원가입 요청 API")
     public CommonResponse<MemberResponseDto> signup(@Valid @RequestBody SignupRequestDto request) {
 
-        return new CommonResponse<>(ResponseCode.SUCCESS, authService.signup(request));
+        return new CommonResponse<>(ResponseCode.SUCCESS, authService.signup(request), "회원가입을 성공하였습니다");
     }
 
     @PostMapping("/reissue")
     @Operation(summary = "토큰 재발급", description = "토큰 재발급 요청 API")
-    public CommonResponse<TokenResponseDto> reissue(HttpServletRequest request, HttpServletResponse response) {
+    public CommonResponse<Void> reissue(HttpServletRequest request, HttpServletResponse response) {
 
         String refreshToken = authService.extractRefreshToken(request);
         authService.validateRefreshToken(refreshToken);
@@ -45,7 +45,7 @@ public class AuthController {
 
         authService.setNewTokens(response, newAccessToken, RefreshTokenCookie);
 
-        return new CommonResponse<>(ResponseCode.SUCCESS, new TokenResponseDto(newAccessToken, null));
+        return new CommonResponse<>(ResponseCode.SUCCESS, "토근 재발급을 성공하였습니다");
     }
 
     @GetMapping("/admin")
