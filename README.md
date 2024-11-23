@@ -8,13 +8,13 @@ CEOS 20th BE study - instagram clone coding
 
 ### 전체 구조
 
-![img_2.png](img_2.png)
+![ReadMe_Images/img_2.png](ReadMe_Images/img_2.png)
 
 ### 세부 구조
 
 #### 1. 유저 간 1:1 DM 기능
 
-![img_3.png](img_3.png)
+![ReadMe_Images/img_3.png](ReadMe_Images/img_3.png)
 
    - 처음에는 한 명의 유저는 여러 dm방을 가질 수 있고, 하나의 dm방은 여러 유저와 관계를 맺을 수 있기에 다대다 관계이므로 1:N, N:1 관계로 풀어주기 위해 중간테이블을 두려고 했다. 하지만 이 방식에서는 Message 테이블이 User와 Room을 직접 참조하지 못하고 중간테이블을 거쳐야 해 구조가 복잡해져 다시 생각해보았다. 1:1 채팅이기에 하나의 채팅방은 두명의 유저와만 관계를 맺기 때문에 굳이 다대다 관계로 볼 필요가 없이, DmRoom 엔티티에 유저1 id와 유저2 id를 외래키로 두어 각 유저와 Dm방이 관계를 맺도록 함으로써 DM방과 User를 N:1관계로 보았다. 대신 이 관계를 두 유저와 가지므로 두 번 가지게 된다.
 
@@ -23,7 +23,7 @@ CEOS 20th BE study - instagram clone coding
 
 #### 2. 게시글 기능
 
-![img_4.png](img_4.png)
+![ReadMe_Images/img_4.png](ReadMe_Images/img_4.png)
 
    - 게시글 이미지 : 사진을 포함한 게시글을 작성할 수 있도록 이미지 엔티티를 생성하였으며, 게시글 ID를 외래 키로 설정하여 각 게시글에 사진을 첨부할 수 있도록 구성하였다. 서버에 이미지를 업로드한 후 해당 이미지의 URL을 데이터베이스에 저장하도록 하였다.
    
@@ -34,7 +34,7 @@ CEOS 20th BE study - instagram clone coding
 
 #### 3. 댓글 기능
 
-![img_5.png](img_5.png)
+![ReadMe_Images/img_5.png](ReadMe_Images/img_5.png)
 
    - 대댓글 : 댓글과 대댓글은 1:N 관계이고, 둘의 필드 구성이 매우 유사해 엔티티를 분리하지 않고, Comment 엔티티를 순환참조 하도록 구성했다. 대댓글을 구현하기위해 Comment 엔티티에 부모댓글의 id인 parent_id를 외래키로 설정하고 이를 참조하도록 했다. 해당 댓글이 부모댓글이라면 parent_id는 null이므로 parent_id 필드는 null 값을 허용해준다.
 
@@ -42,7 +42,7 @@ CEOS 20th BE study - instagram clone coding
 
 #### 4. 유저 기능
 
-![img_6.png](img_6.png)
+![ReadMe_Images/img_6.png](ReadMe_Images/img_6.png)
 
    - 회원가입 : 휴대폰 번호 or 이메일, 성명, 사용자 이름(닉네임), 비밀번호를 입력해 회원가입 한다. 이때 사용자 이름은 중복되지 않는지 검사해주어야 한다.
    
@@ -409,7 +409,7 @@ Hibernate:
 
 ### Q1. 어떻게  data jpa는 interface만으로도 함수가 구현이 되는가?
 
-![img_1.png](img_1.png)
+![ReadMe_Images/img_1.png](ReadMe_Images/ReadMe_Images/img_1.png)
 
 Spring Data JPA는 애플리케이션 실행 시, JpaRepository 인터페이스를 상속하는 repository 인터페이스에 대해 프록시 패턴을 사용해 SimpleJpaRepository 기반의 구현체를 동적으로 생성하고, 이를 빈으로 등록해 의존성을 주입해주기 때문이다.
 
@@ -1318,7 +1318,7 @@ public class SwaggerConfig {
     }
 }
 ```
-![img_8.png](img_8.png)
+![ReadMe_Images/img_8.png](ReadMe_Images/img_8.png)
 
 4. Controller 설정
 
@@ -1441,12 +1441,12 @@ public class PostController {
 
   입력받는 파라미터에 대한 정보를 나타낸다
 
-![img_7.png](img_7.png)
-![img_9.png](img_9.png)
-![img_12.png](img_12.png)
+![ReadMe_Images/img_7.png](ReadMe_Images/img_7.png)
+![ReadMe_Images/img_9.png](ReadMe_Images/img_9.png)
+![ReadMe_Images/img_12.png](ReadMe_Images/img_12.png)
 
 성공하면 아래와 같은 응답이 뜬다.
-![img_13.png](img_13.png)
+![ReadMe_Images/img_13.png](ReadMe_Images/img_13.png)
 
 
 # 5주차
@@ -1461,7 +1461,7 @@ public class PostController {
     }
 ```
 그런데 이미지 삭제와 관련해서 아래와 같은 리뷰를 받았다. 
-![img_14.png](img_14.png)
+![ReadMe_Images/img_14.png](ReadMe_Images/img_14.png)
 
 removeAll 메소드는 PostImage 객체의 동등성을 기준으로 삭제할 항목을 결정하게 된다. 자바에서는 기본적으로 `메모리 주소`로 동등성을 비교하기 때문에 removeAll이 동작하기 위해서는 같은 메모리 주소를 참조하는 객체여야 한다고 한다. 그런데 JPA에서는 영속성 컨텍스트가 다르다면 동일한 데이터베이스 엔티티라도 메모리 주소가 달라 서로 다른 객체로 인식되어 removeAll에서 삭제되지 않을 수 있다고 한다.
 
@@ -1513,11 +1513,11 @@ public class PostImage {
 
 ## 📍회원가입
 비밀번호가 유출될 경우 해커가 사용하게 되는 경우를 방지하기 위해 비밀번호를 암호화해서 데이터베이스에 저장해야한다.
-![img_15.png](img_15.png)
+![ReadMe_Images/img_15.png](ReadMe_Images/img_15.png)
 
 ## 📍인증방식
 ### 1) 세션 + 쿠키를 이용한 인증
-![img_19.png](img_19.png)
+![ReadMe_Images/img_19.png](ReadMe_Images/img_19.png)
 
 사용자가 로그인을 시도하면 서버에서 사용자 정보를 읽어 사용자 확인 한 후 세션 저장소에 사용자에게 고유한 Session ID를 생성하여 저장한다. 
 서버는 로그인에 대한 응답으로 Response Header에 발급된 Session ID를 실어 보낸다. 사용자는 이 Session ID를 쿠키에 저장하고, 이후 매 요청마다 Http Request Header에 이 쿠키를 실어보내고,
@@ -1526,7 +1526,7 @@ public class PostImage {
 단점 : 서버에 세션 저장소를 두고 여기에 Session ID를 저장해야 하기 때문에 추가적인 저장공간을 필요로 한다. 또한 요청이 들어올 때마다 db에서 조회해야 하므로 속도가 느리고 접속자가 많으면 성능이 저하될 수가 있다. + 쿠키 탈취 위험
 
 ### 2) Access Token + Refresh Token을 이용한 인증
-![img_23.png](img_23.png)
+![ReadMe_Images/img_23.png](ReadMe_Images/img_23.png)
 
 1)클라이언트가 요청을 보내면 서버측에서는 요청 헤더에 Authorization라는 이름의 헤더값을 읽는다.
 
@@ -1543,7 +1543,7 @@ public class PostImage {
 
 
 ## 📍로그인 및 인증 과정
-![img_17.png](img_17.png)
+![ReadMe_Images/img_17.png](ReadMe_Images/img_17.png)
 
 
 ## 📍스프링 시큐리티의 인증 과정
@@ -1562,7 +1562,7 @@ public class PostImage {
 - 인증 실패시 401 Aunautorized 상태를 응답하게 된다.
 
 ## 📍SecurityContextHolder, SecurityContext, Authentication
-![img_16.png](img_16.png)
+![ReadMe_Images/img_16.png](ReadMe_Images/img_16.png)
 
 - SecurityContextHolder → 인증된 사용자의 상세 정보를 보관해주는 장소
 - SecurityContext → SecurityContextHolder를 통해 얻을 수 있으며, 현재 인증된 사용자의 정보(Authentication)를 포함한다
@@ -1642,12 +1642,12 @@ public class UsernamePasswordAuthenticationToken extends AbstractAuthenticationT
 ### 📍로그인 및 API 테스트
 email, password로 로그인한 로그인 결과 response header에 access 토큰이, cookie에 refresh 토큰이 잘 담겼음을 확인할 수 있다.
 
-![img_21.png](img_21.png)
-![img_22.png](img_22.png)
+![ReadMe_Images/img_21.png](ReadMe_Images/img_21.png)
+![ReadMe_Images/img_22.png](ReadMe_Images/img_22.png)
 
 Authorization 헤더에 access 토큰을 Bearer 형식으로 실어서 요청을 보내면 인증이 필요한 경로의 요청이 잘 수행된다.
 
-![img_24.png](img_24.png)
+![ReadMe_Images/img_24.png](ReadMe_Images/img_24.png)
 
 
 ### 📍RefreshRotate
@@ -1656,3 +1656,309 @@ Refresh 토큰을 받아 새로운 access 토큰을 발급해줄 때 refresh 토
 #### <서버측 주도권>
 단순히 JWT를 발급하여 클라이언트 측으로 전송하면 인증/인가에 대한 주도권 자체가 클라이언트 측에 맡겨진다. 이 경우 JWT가 탈취되면 만료되기 전까지 서버는 이를 막을 수 없다. 이를 방지하기 위해, 생명주기가 긴 refresh 토큰은 발급 시 서버 측 저장소에 저장해야 한다! 이후 클라이언트가 refresh 토큰을 사용해 요청을 보낼 때, 서버는 해당 토큰이 저장소에 있는지 확인하여 저장소에 저장된 토큰만 허용함으로써 "서버가 주도권"을 가질 수 있도록 한다.
 Refresh토큰이 계속 쌓일 경우 용량 문제가 발생할 수 있다. 이를 방지하기 위해 RDB를 사용하는 경우엔 스케줄러를 실행하여 일정 주기마다 유효기간이 지난 refresh 토큰을 삭제해주고, Redis를 사용하는 경우 TTL 설정을 통해 유효기간이 지나면 자동으로 삭제되게끔 하는 게 좋다.
+
+
+# 6주차
+## Docker
+<img width="667" alt="image" src="https://github.com/user-attachments/assets/9980e030-851f-42b1-837b-8be6b615a0f9">
+
+### 📍이미지
+어플리케이션 실행에 필요한 서비스 프로그램, 소스코드 및 라이브러리, 컴파일된 실행 파일을 포함하는 불변 파일이다. 도커 이미지는 Dockerfile이라는 파일을 빌드하여 만들며 컨테이너를 생성하기 위한 읽기전용 템플릿 역할을 한다.
+
+### 📍컨테이너
+컨테이너는 도커 이미지를 실행한 상태로, 애플리케이션과 이를 실행하는 환경이 포함된 독립적인 공간이다. 컨테이너는 애플리케이션과 실행 환경이 함께 들어있는 하나의 상자처럼 동작하며, 호스트 시스템과 격리된 상태로 실행된다.
+
+
+### 📍포트 포워딩
+![ReadMe_Images/img_26.png](ReadMe_Images/img_26.png)
+Host 의 port 와 container 의 port 를 맵핑시켜줘야 외부(Host)에서 컨테이너로 접근할 수 있다. 포트 포워딩을 통해 port를 연결해주고 나면, host의 80번 port로 들어온 신호가 container의 80번 port로 전송된다.
+```
+# docker run -p host포트:container포트 이미지명
+
+docker run --name test -d -p 8088:80 httpd
+```
+
+### 📍컨테이너 내부에 접속해서 작업하고 싶을 때
+
+`docker exec -it 컨테이너명 /bin/bash (또는 /bin/sh)` 
+
+특정 컨테이너를 대상으로 명령을 내리고 싶을 때 사용하며 그 결과가 우리한테 보여지게 된다. bin/sh은 기능이 많이 부족해서 bin/bash를 이용하는 게 좋다. 하지만 컨테이너에 따라 bash bash가 존재 하지 않는 경우가 있어 이런 경우엔 /bin/sh 이용해야 한다.
+
+`-it` : 터미널을 이용해 컨테이너와 상호작용하기 위해 사용한다. 실시간으로 명령을 실행하고 결과를 확인할 수 있게 된다.
+
+이제 연결을 끊고 컨테이너가 아닌 호스트를 대상으로 명령을 내리고 싶으면 `exit`을 입력하면 된다
+![ReadMe_Images/img_25.png](ReadMe_Images/img_25.png)
+
+### 📍호스트와 컨테이너의 디렉토리를 연결(마운트) 
+<img width="1338" alt="image" src="https://github.com/user-attachments/assets/9352f470-d799-438c-ba10-b143641d18f1">
+컨테이너는 필요할 때 생성하고 필요없을 때 지우고 하는 작업이 빈번하게 발생한다. 따라서 컨테이너의 실행환경은 컨테이너에게 맡기고 파일을 수정하는 작업은 host에서 진행하는 게 좋다.
+
+-> How? : 컨테이너의 /usr/local/apache2/htdocs/ 디렉토리와 호스트의 /Desktop/htdocs 디렉토리를 연결하고, 호스트쪽에서 수정이 일어났을 때 이것이 컨테이너의 File System에 반영되게끔 하면 된다(docker run 시, -v 옵션을 사용). 이러면 컨테이너를 삭제해도 소스코드가 호스트에 그대로 남아있어 안전하다. 
+
+`docker run --name ws3 -d -p 8080:80 -v ~/Desktop/htdocs:/usr/local/apache2/htdocs/ httpd`
+
+### 📍도커 기반 스프링부트 빌드해보기
+
+#### ✅ jar 파일 생성
+
+![ReadMe_Images/img_27.png](ReadMe_Images/img_27.png)
+
+![ReadMe_Images/img_28.png](ReadMe_Images/img_28.png)
+
+#### ✅ Dockerfile 작성
+
+- 도커 이미지를 생성하기 위한 스크립트
+
+- 프로젝의 **최상단 디렉토리**에 Dockerfile을 작성 후 빌드하면 Docker는 Dockerfile에 나열된 명령문을 차례대로 수행하며 도커이미지를 생성해준다.
+
+```
+FROM openjdk:17
+ARG JAR_FILE=/build/libs/*.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["java","-jar", "/app.jar"]
+```
+- `FROM openjdk:17` : 어떤 jdk 버전을 사용할지 나타냄
+- `ARG JAR_FILE=/build/libs/*.jar` : 내가 bootjar함으로써 생성된 jar 파일의 경로를 지정한다.
+- `COPY ${JAR_FILE} app.jar` : 빌드된 jar 파일을 도커 이미지 내부의 /app.jar 경로로 복사한다. Docker 컨테이너를 실행하려면 어플리케이션과 실행 가능한 파일이 컨테이너 내부에 있어야 하기 때문에 호스트 시스템에 있는 jar 파일을 컨테이너의 파일 시스템으로 복사하는 것이다.
+- `ENTRYPOINT ["java","-jar","/app.jar"]` : 컨테이너가 실행될 때 실행되는 명령을 정의한다. 자바는 빌드된 .jar를 실행할 때 java -jar <빌드 파일명>으로 실행하기 때문에 Java 실행 명령을 통해 /app.jar 경로에 있는 jar 파일을 실행하도록 작성
+
+
+#### ✅ 도커 이미지 생성
+intellij 내의 터미널에서 dockerfile을 바탕으로 도커 이미지를 build 하도록 명령어를 실행
+
+`docker build -t {docker image 이름} {Dockerfile의 위치}`
+
+![ReadMe_Images/img_30.png](ReadMe_Images/img_30.png)
+![ReadMe_Images/img_29.png](ReadMe_Images/img_29.png)
+![ReadMe_Images/img_31.png](ReadMe_Images/img_31.png)
+
+#### ✅ 도커이미지 실행 (컨테이너 생성)
+![ReadMe_Images/img_32.png](ReadMe_Images/img_32.png)
+
+이렇게 떠서 성공하는 듯 했으나 뒤에 에러가 뜨면서 실패했다.
+
+
+####  🚨 에러 1 - DB(MySQL)는 이미지와 컨테이너 안 만들어줘서 발생
+에러 중 일부를 가져왔는데 아래와 같이 sql 관련한 에러들이었다. 
+```
+java.lang.NullPointerException: Cannot invoke "org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(java.sql.SQLException, String)" because the return value of "org.hibernate.resource.transaction.backend.jdbc.internal.JdbcIsolationDelegate.sqlExceptionHelper()" is null
+2024-11-15T07:40:01.632Z ERROR 1 — [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : Communications link failure
+
+The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+2024-11-15T07:40:01.644Z ERROR 1 — [           main] j.LocalContainerEntityManagerFactoryBean : Failed to initialize JPA EntityManagerFactory: [PersistenceUnit: default] Unable to build Hibernate SessionFactory; nested exception is org.hibernate.exception.JDBCConnectionException: Unable to open JDBC Connection for DDL execution [Communications link failure
+Caused by: com.mysql.cj.exceptions.CJCommunicationsException: Communications link failure
+
+```
+
+MySQL 관련 에러인 것 같아 찾아보니, MySQL과 SpringBoot 서버를 도커 상에서 연걸하기 위해서는
+
+**애플리케이션 서버(Spring Boot)와 데이터베이스(MySQL)가 각각 Docker 컨테이너로 실행되고, 이들 컨테이너가 네트워크를 통해 통신할 수 있어야 한다**고 한다. 
+
+현재는 Spring Boot 컨테이너만 생성된 상태이기 때문에 MySQL 컨테이너를 추가적으로 만들어 주어야 한다.
+
+Spring Boot 이미지와 컨테이너, MySQL 이미지와 컨테이너를 모두 생성했다면 두 컨테이너를 같은 네트워크에 연결하여 서로 통신이 가능하도록 설정해야 한다. 이 작업을 수동으로 설정할 수도 있지만, 간편하게 처리하고 관리하기 위해 docker compose를 많이 사용한다고 한다.
+Docker Compose를 이용하면 여러 컨테이너를 쉽게 생성하고 네트워크 설정도 자동으로 구성할 수 있다.
+
+-> Docker Compose란? 여러 개의 컨테이너를 사용하는 복잡한 애플리케이션을 쉽게 관리할 수 있는 도구
+
+#### 1. DB는 현재 MySQL을 사용하고 있으므로 MySQL 이미지를 생성해준다.
+MySQL은 따로 Dockerfile 만들어줄 필요 없이, DockerHub에서 이미 만들어진 MySQL 이미지 파일을 다운받을 수 있어서 이 방법을 사용했다. 버전은 로컬과 동일한 8.0 버전을 pull 받았다.
+![ReadMe_Images/img_33.png](ReadMe_Images/img_33.png)
+![ReadMe_Images/img_34.png](ReadMe_Images/img_34.png)
+
+#### 2. MySQL 이미지를 실행시켜 컨테이너 만들어보기
+워크벤치에 접속하거나 Spring Boot의 로컬 환경에서 데이터베이스와 연결할 때 MySQL의 username과 password가 필요한 것처럼, **MySQL 이미지를 컨테이너화할 때도 root 계정의 비밀번호를 설정해야 한다.**
+
+`docker run --name <컨테이너명> -p <호스트 포트>:<컨테이너 내부 포트> -e MYSQL_ROOT_PASSWORD=<패스워드> -d mysql:8.0`
+
+![ReadMe_Images/img_35.png](ReadMe_Images/img_35.png)
+
+근데 오류가 발생했다. 
+
+이미 로컬의 MySQL 서버가 3306포트를 점유중인데 컨테이너에 3306 Host 포트를 할당해서 위의 문제가 발생한 것이다.
+
+이를 해결하기 위해 Host의 포트 중 아무 빈 포트를 찾아 애를 컨테이너에 할당해주었다. 난 3307포트에 할당해주었다.
+
+![ReadMe_Images/img_36.png](ReadMe_Images/img_36.png)
+
+
+#### 3. application.yml에서 연결된 데이터베이스 이름을 바꿔주기
+이후 application.yml에서 연결된 데이터베이스 이름을 바꿔주었다. 현재는 localhost이지만 Spring boot를 도커로 띄우면 mysql-container 컨테이너와 연결되어야 한다.
+
+따라서 **URL의 호스트명을 MySQL 컨테이너 이름**으로 변경해주어야 한다.
+
+-> Spring Boot 컨테이너와 MySQL 컨테이너가 Docker Compose로 함께 관리되는 경우, 두 컨테이너는 자동으로 같은 네트워크에 연결된다. Docker Compose가 생성한 네트워크 환경에서는 컨테이너 이름이나 서비스 이름을 호스트네임으로 사용해 서로 통신할 수 있다.
+
+```
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://mysql-container:3306/instagram?serverTimezone=UTC
+```
+
+#### 4. Docker Compose를 이용해 MySQL 컨테이너와 SpringBoot 컨테이너를 생성하고 연결해주기
+
+**<두 컨테이너를 연결해주는 방법>**
+
+두 컨테이너를 동일 네트워크에 포함시켜야 한다! docker-compose를 사옹하면 네트워크 항목을 정의하지 않아도 **자동으로 브릿지 네트워크가 생기고 두 컨테이너는 해당 네트워크에 종속**되기 때문에 내가 네트워크를 따로 생성하여 포함시키는 작업을 굳이 안해도 된다.
+
+이때 생성된 네트워크 이름은 [프로젝트 이름]_default로 설정되며 docker-compose up 명령어로 생성되고 docker-compose down 명령어로 삭제된다.
+
+**docker-compose.yml** : Dockerfile과 마찬가지로 프로젝트의 최상단에 생성한다.
+
+```
+version: "3"
+
+services:
+  db:
+    image: mysql:8.0  # Mac에서 MySQL 8.0 사용
+    container_name: mysql-container #compose up을 통해 생성될 mysql 컨테이너 이름 지정
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}  #.env 파일에서 자동으로 값을 읽음
+      MYSQL_DATABASE: instagram  # Docker에서 MySQL 컨테이너를 처음 생성하면 기본적으로 아무 데이터베이스도 생성되어 있지 않아서 만들어줘야됨
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    restart: always
+
+  web:
+    image: instagram
+    container_name: instagram-container
+    build: .  # # 현재 디렉토리에 있는 Dockerfile을 사용하여 빌드
+    ports:
+      - "8080:8080"
+    depends_on:  # 위에 생성한 db 컨테이너와 의존 관계를 맺어 db 컨테이너가 먼저 실행한 뒤 instagram-container가 실행되게 한다.
+      - db
+    environment:
+      mysql_host: db  # MySQL서버 컨테이너의 호스트 이름-> web서비스가 db서비스에 접근할 수 있도록 설정 (Docker Compose를 사용하면 동일한 네트워크 내에서 컨테이너 이름을 호스트 이름으로 사용하여 서로 접근함)
+    restart: always
+    volumes:
+      - app:/app
+
+volumes:
+  dbdata:
+  app:
+```
+- `services` : 생성될 컨테이너들을 묶어놓은 단위. services 항목 아래에는 각 컨테이너에 적용될 생성 옵션을 지정한다.
+- `image` : 컨테이너를 생성할 때 쓰일 이미지의 이름을 설정
+- `container_name` : compose up을 통해 생성될 컨테이너 이름을 지정
+- `environment` : 컨테이너 내부에서 사용할 환경변수를 지정하며, docker run 명령어의 -e 옵션과 동일하다.
+- `depends_on` : 특정 컨테이너에 대한 의존관계를 나타내며 이 항목에 명시된 컨테이너가 먼저 실행된 후에 실행되도록 보장한다. 위에서는 db 컨테이너가 먼저 실행한 뒤 instagram-container가 실행되게 한다. 하지만 depends_on은 **실행 순서만 보장**해주고, db 컨테이너의 초기화나 설정을 기다리진 않는다.
+- `ports` : 컨테이너를 개방할 포트를 설정하는 것으로, docker run 명령어의 -p와 같다.
+- `build` : build 항목에 정의된 dockerfile에서 이미지를 빌드하도록 설정한다. 이후 docker-compose up 명령을 실행하면, 이 빌드된 이미지를 기반으로 컨테이너를 생성하고 실행한다.
+- `restart: always` : Docker 컨테이너가 비정상(메모리 부족, 시스템 종료) 종료되었을 때 자동으로 재시작하도록 설정한다.
+
+  -> MySQL 컨테이너 설정이 완료되고나서 Spring Boot 컨테이너가 실행되어야 DB 커넥션 에러가 발생하지 않는다. `depends_on` 명령어는 시작 순서만 db가 먼저 되도록 보장해주지, MySQL 설정이 끝나고나서 spring boot 컨테이너가 실행되는지는 보장해주진 않아서 DB 커넥션 에러가 발생할 수 있다. 따라서 restart:always 명령어를 추가해 spring boot 컨테이너가 정상적으로 실행이 될 때까지 재시작을 반복하도록 설정해주었다.
+
+  -> 프리티어 EC2를 사용하면 용량이 작아 서버가 끊기는 일이 발생할 수 있다. 컨테이너가 비정상 종료되었을 때 자동으로 재시작되도록 할 수 있도록 restart:always는 항상 붙여주어야 한다.
+
+- `volumes` : 도커에서 컨테이너의 데이터의 지속성을 보장하기 위해 사용
+
+  -> 도커는 각 컨테이너마다 독자적인 저장소(volume)을 가진다. 따라서 컨테이너 내부에 저장되는 데이터는 컨테이너가 삭제되었을 경우 함께 사라지지만, volumes를 사용하면 데이터를 컨테이너 외부의 Docker 볼륨에 저장할 수 있어서 컨테이너가 삭제되거나 재시작되더라도 데이터가 유지된다.
+    
+  위의 코드에서는 MySQL 컨테이너의 데이터베이스 파일이 저장되는 기본 디렉터리 /var/lib/mysql를 dbdata라는 이름의 Docker 볼륨과 연결(마운트)하여 데이터베이스 파일이 컨테이너 삭제 후에도 유지되도록 한다.
+
+####  🚨 에러 2 - application.yml에 있는 spring.jwt.secret을 Docker Compose가 환경변수로 전달하지 못해서
+**-> Solution)  .env, env_file 이용해야 한다!**
+
+**<문제상황>**
+
+Swagger에 접속도 잘 되고 회원가입까진 잘 되는데 토큰이 필요한 작업들이 안되었다. 터미널을 보니까 아래와 같이 JWT signature 문제라고 떴다.
+![ReadMe_Images/img_38.png](ReadMe_Images/img_38.png)
+Docker Compose 내의 instagram-container 컨테이너에 spring.jwt.secret이 제대로 전달되었나 확인해보니 빈 값이 출력되었다. 전달이 안 된 것이다.. Docker Compose는 application.yml 파일을 알아서 읽어서 컨테이너에게 값을 전달하지 않는 것 같다. 
+![ReadMe_Images/img_39.png](ReadMe_Images/img_39.png)
+따라서 spring.jwt.secret 같은 환경변수 값들을 .env 파일에 넣고 얘를 Docker Compose가 SpringBoot 컨테이너에게 전달하게끔 해주었다. 
+
+우선 프로젝의 **최상단 디렉토리**에 .env파일을 만들고 .env파일에 spring.jwt.secret 키를 저장하고 docker-compose.yml에서 env_file 옵션을 사용하여 .env 파일을 로드하도록 해주었다. 
+
+이러면 .env 파일의 환경변수를 Docker Compose가 컨테이너에게 전달하게 된다고 한다.
+```
+version: "3"
+
+services:
+  db:
+    image: mysql:8.0  # Mac에서 MySQL 8.0 사용
+    container_name: mysql-container #compose up을 통해 생성될 mysql 컨테이너 이름 지정
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}  #.env 파일에서 자동으로 값을 읽음
+      MYSQL_DATABASE: instagram
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    restart: always
+
+  web:
+    container_name: instagram-container
+    build: .   # 현재 디렉토리에 있는 Dockerfile을 사용하여 이미지를 빌드
+    ports:
+      - "8080:8080"
+    depends_on:  # 위에 생성한 db 컨테이너와 의존 관계를 맺어 db 컨테이너가 먼저 실행한 뒤 instagram-container가 실행되게 한다.
+      - db
+    environment:
+      mysql_host: db  # MySQL서버 컨테이너의 호스트 이름-> web서비스가 db서비스에 접근할 수 있도록 설정 (Docker Compose를 사용하면 동일한 네트워크 내에서 컨테이너 이름을 호스트 이름으로 사용하여 서로 접근함)
+    env_file:
+      - .env   #.env파일의 환경변수를 docker compose가 읽어 컨테이너에 전달
+    restart: always
+    volumes:
+      - app:/app
+
+volumes:
+  dbdata:
+  app:
+```
+.env에 spring.jwt.secret을 저장하게끔 바꾸면서 application.yml도 수정하였다.
+```
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://mysql-container:3306/instagram?serverTimezone=UTC
+    username: root
+    password: ${MYSQL_ROOT_PASSWORD}
+  jpa:
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        database-platform: org.hibernate.dialect.MySQL8Dialect
+        show_sql: true
+        format_sql: true
+  servlet:
+    multipart:
+      max-file-size: 10MB  # 파일 하나의 최대 크기
+      max-request-size: 1GB  # 전체 요청의 최대 크기
+
+  jwt:
+    secret: ${spring.jwt.secret}
+```
+
+**❗그리고 .env 파일을 Spring Boot에서 읽으려면 라이브러리를 별도로 설치해주어야 한다!**
+```
+  implementation 'me.paulschwarz:spring-dotenv:3.0.0'
+```
+
+코드를 수정했으니 빌드해야 할 jar 파일도 달라져야하므로 clean -> bootJar 로 기존의 jar파일을 지우고 새로운 jar 파일을 생성해주었다.
+
+그리고나서 새로운 jar를 이용해 이미지와 컨테이너를 다시 만들게끔 아래 명령어로 DockerCompose를 다시 실행해주었다. 
+
+아래 명령어를 실행하면 기존에 동일한 이름과 태그를 가진 이미지가 있더라도 새로 빌드된 이미지로 덮어씌우고, 기존 컨테이너를 중단하고 삭제한 다음, 새 이미지로 컨테이너를 다시 시작한다.
+```
+  docker-compose -f docker-compose.yml up --build
+```
+
+이제 토큰을 헤더에 넣고 해야하는 작업들이 모두 잘 됨을 확인할 수 있다!
+![ReadMe_Images/img_41.png](ReadMe_Images/img_41.png)
+<img width="300" alt="image" src="https://github.com/user-attachments/assets/022e3cc1-2107-49e8-9f75-594dacbec7b4">
+
+
+#### ✅Workbench 설정
+
+이제 workbench에서 접속하는 방법도 달라져야 한다. docker-compose.yml에서 3307:3306으로 Host의 3307포트를 MySQL 컨테이너의 3306 포트와 매핑시켰으므로 workbench를 사용할 때 Host의 3007 포트를 이용해 MySQL에 접근할 수 있다.
+
+따라서 새로운 connection을 만들고나서 다른 건 기존과 같게 적어주고 Port만 3307로 바꿔서 연결해주면 된다.
+![ReadMe_Images/img_42.png](ReadMe_Images/img_42.png)
+
