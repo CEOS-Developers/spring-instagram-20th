@@ -1,6 +1,6 @@
 package com.ceos20.spring_boot.user.service;
 
-import com.ceos20.spring_boot.auth.TokenProvider;
+import com.ceos20.spring_boot.security.TokenProvider;
 import com.ceos20.spring_boot.user.DTO.UserCreateDTO;
 import com.ceos20.spring_boot.user.DTO.UserDTO;
 import com.ceos20.spring_boot.user.DTO.UserProfileDTO;
