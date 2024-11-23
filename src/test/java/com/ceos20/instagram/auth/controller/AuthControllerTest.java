@@ -1,8 +1,8 @@
 package com.ceos20.instagram.auth.controller;
 
-import com.ceos20.instagram.auth.dto.SignInRequest;
-import com.ceos20.instagram.auth.dto.SignUpRequest;
-import com.ceos20.instagram.auth.service.AuthService;
+import com.ceos20.instagram.domain.auth.dto.SignInRequest;
+import com.ceos20.instagram.domain.auth.dto.SignUpRequest;
+import com.ceos20.instagram.domain.auth.service.AuthService;
 import com.ceos20.instagram.global.jwt.dto.JwtToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;

@@ -1446,3 +1446,320 @@ jwt로 인증하는 방식이 과연 안전할까?
 ### RefreshToken
 
 유효기간이 만료된 accessToken을 재발급할때 사용되는 토큰이다.
+
+
+------
+## 6주차 Docker 🐳
+
+## Docker 란??
+
+애플리케이션과 그 애플리케이션이 동작하는데 필요한 모든 환경을 **컨테이너**라는 독립적인 단위로 묶어 배포할 수 있게 해주는 가상화된 플랫폼이다.
+
+<img width="764" alt="스크린샷 2024-11-15 오전 1 16 41" src="https://github.com/user-attachments/assets/f09ab2ef-3146-4cd5-b2c1-8db898918651">
+
+
+### 1) Image (이미지)
+
+- 서비스 운영에 필요한 서버 프로그램, 소스코드 및 라이브러리, 컴파일된 실행 파일을 묶은 형태
+- 특정 프로세스를 실행하기 위한 모든 파일과 설정값(환경)을 지닌 것으로, 더 이상의 의존성 파일을 컴파일하거나 이것저것 설치 할 필요 없는 상태의 파일 의미
+
+→ 컨테이너를 생성하기 위한 템플릿 역할
+
+### 2) Container (컨테이너)
+
+- 애플리케이션과 그 애플리케이션이 동작하는 데 필요한 모든 파일, 라이브러리, 설정 등을 **하나의 독립된 환경으로 묶은 것**
+- 이미지를 실행한 상태
+
+## 🧩 Image layer 란?
+
+<img width="804" alt="스크린샷 2024-11-15 오후 3 31 14" src="https://github.com/user-attachments/assets/f200f26a-790e-433f-a4ed-5c98eb0b7885">
+나는 분명 이미지 1개를 pull 받은건데…7개의 데이터가 pull 받아진 것을 볼 수 있다.
+
+왜 그런걸까?? 저 7개의 조각들은..무엇일까?
+
+→ 각각의 조각을 docker image **layer**라고 한다.
+
+docker 이미지는 여러 개의 **읽기 전용 레이어**로 구성되어 있고, 레이어들은 각각 독립적으로 저장되어 있다.
+
+이미지를 수정하고 싶은 경우는 새로운 레이어를 만들어 위에 추가하는 방식으로 이미지를 업데이트 할 수 있다.
+
+<img width="285" alt="스크린샷 2024-11-15 오후 3 56 57" src="https://github.com/user-attachments/assets/d8b41885-31e3-46de-923b-6b99de76af20">
+
+**Base Image (베이스 이미지)**
+
+- 첫번째 레이어
+- 운영체제의 기본 파일 시스템을 포함하며, 다른 모든 레이어의 기반이 된다
+
+**Intermediate Layer (중간 레이어)**
+
+- 베이스 이미지 위에 추가되는 레이어
+- 각 중간 레이어들은 Dockerfile의 명령어에 의해 생성된다
+  - `RUN`, `COPY`, `ADD` 명령어는 새로운 중간 레이어를 생성한다.
+
+**Final Layer (최종 레이어)**
+
+- 컨테이너를 실행하기 위해 필요한 모든 파일과 설정 포함
+- 이 레이어는 읽기 전용 이고, 컨테이너가 생성될 때 **읽기-쓰기 레이어**가 이 위에 추가된다.
+
+**📌 layer 특징 요약**
+
+- **Immutability (불변성)**
+  - 한번 생성된 레이어는 변경될 수 없다
+  - 변경이 필요하면 새로운 레이어를 생성한다
+- **Caching (캐싱)**
+  - docker는 이전에 생성된 각 레이어를 캐시에 저장한다
+  - 새로운 빌드 과정에서 명령어가 예전과 동일하다면 캐시된 레이어를 재사용한다 → 이미 캐싱된 레이어는 다운로드나 재생산이 필요없어 시간이 절약된다
+- **Shareability (공유성)**
+  - 동일한 레이어는 여러 docker 이미지 간에 공유될 수 있다 → 저장 공간 절약
+  - 여러 이미지에서 동일한 레이어가 사용되면 한번만 저장하고, 다른 이미지에서 이를 참조만 한다
+
+---
+
+## ‘Virtual Machine’ VS ‘Docker Container’
+
+기존에는 가상 머신이라는 가상화 방법이 있었는데
+
+가상 머신에 대해 간단하게 알아보고, 도커와의 차이를 생각해보자!
+
+<img width="510" alt="스크린샷 2024-11-14 오후 8 41 17" src="https://github.com/user-attachments/assets/7d0d4f95-92db-44ef-bfb2-59245ae81b56">
+
+**Virtual Machine (가상머신)**
+
+- **Hypervisor**(하이퍼바이저)를 이용해 여러개의 운영체제를 하나의 호스트에서 생성해서 사용하는 방식
+- 이때 하이퍼바이저 위에 올라온 운영체제를 Guest OS 라고한다.
+- 시스템 자원을 가상화하고, 독립된 공간을 생성하는 작업은 하이퍼바이저를 거치므로 성능 손실이 크다.
+- 가상머신은 guest os를 사용하기 위한 라이브러리, 커널 등을 포함하므로 배포할 때 이미지 용량이 커진다.
+
+→ 가상머신은 **완전한 OS**를 구동하는 가상화 방식이다.
+
+기존 가상머신의 단점을 보완하기 위해 나온 것이 Docker 입니다.
+
+<img width="575" alt="스크린샷 2024-11-14 오후 8 48 07" src="https://github.com/user-attachments/assets/28b6603b-5f2b-4a30-825c-edac44746ae8">
+
+**Docker Container (도커 컨테이너)**
+
+- 컨테이너는 호스트 OS의 커널을 공유하여 애플리케이션과 필요한 라이브러리만 독립된 환경에 묶어 배포하는 방식
+
+→ 컨테이너 기반의 가상화 기술이다.
+
+**차이점**
+
+1. 커널 공유
+  - Docker 컨테이너는 호스트 OS의 커널을 공유한다.
+  - VM은 하이퍼바이저 위에 각자의 커널을 포함한 Guest OS를 구동한다 → 도커에 비해 무겁고 실행 시간이 길어질 수 있다
+2. 이미지 크기
+  - Docker 컨테이너는 애플리케이션 실행에 필요한 라이브러리와 의존성만 포함하여 이미지의 크기가 상대적으로 작다
+  - VM은 각자의 커널을 포함하기 때문에 이미지의 크기가 커진다
+3. 가상화 방식
+  - Docker는 프로세스 수준에서 격리하는 방식으로 가상화한다 → 운영체제의 기능(네임스페이스, cgroups 등)을 사용하여 각 컨테이너가 독립된 환경처럼 작동하도록 격리
+  - VM은 하이퍼바이저를 통해 하드웨어 수준에서 격리되며, 완전한 OS를 구동하는 가상화 방식이다.
+
+---
+
+## Dockerfile 의 역할
+
+docker에서 **이미지**를 생성하기 위한 용도로 작성하는 파일이다.
+
+나는 도커에 내 스프링부트 애플리케이션을 올리고 싶다.
+
+→ 스프링부트 애플리케이션 실행하는데 필요한 환경을 갖춘 이미지를 만들어줬다.
+
+```
+FROM openjdk:17
+ARG JAR_FILE=/build/libs/*.jar
+COPY ${JAR_FILE} app.jar
+COPY .env ./
+ENTRYPOINT ["java","-jar", "/app.jar"]
+```
+
+- **FROM**
+  - 베이스 이미지를 지정
+    → 완전 아무 것도 없는 상태로 이미지를 만드는게 아니고 어느정도 기본을 갖춘 상태의 이미지를 토대로 만드는데 이를 베이스 이미지라고 한다
+  - 위에서는 java 17 환경을 포함한 openjdk:17 이미지를 사용하여 Java 애플리케이션을 실행할 수 있는 환경을 제공
+- **ARG**
+  - Dockerfile 안에서 사용되는 환경변수 정의
+- **ENTRYPOINT**
+  - 컨테이너 시작 시 실행될 cmd 지정
+  - `java -jar /app.jar` 명령어를 사용해 /app.jar 파일을 실행하여 자바 애플리케이션을 시작
+- **CMD**
+  - 컨테이너 시작 시 실행할 기본 명령어와 인수 정의
+  - cmd는 단독으로 사용 가능하고, 아래와 같이 ENTRYPOINT의 인수 역할로도 사용된다
+
+    ```yaml
+    ENTRYPOINT ["java", "-jar"]
+    CMD ["/app.jar"]
+    ```
+
+
+---
+
+## docker-compose.yml 의 역할
+
+여러개의 컨테이너를 띄우는 도커 애플리케이션을 정의하고 실행하는 도구
+
+컨테이너 실행에 필요한 옵션을 넣고, 컨테이너 간의 의존을 관리할 수 있다.
+
+- 전체 코드
+
+    ```yaml
+    version: "3"
+    
+    services:
+      database:
+        container_name: instagram
+        image: mysql:8.0
+        platform: linux/amd64
+        environment:
+          MYSQL_DATABASE: instagram
+          MYSQL_ROOT_HOST: '%'
+          MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+          TZ: 'Asia/Seoul'
+        ports:
+          - "3306:3306"
+        command:
+          - "mysqld"
+          - "--character-set-server=utf8mb4"
+          - "--collation-server=utf8mb4_unicode_ci"
+        networks:
+          - network
+        healthcheck:
+          test: [ "CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p${DB_PASSWORD} --silent" ]
+          interval: 30s
+          retries: 5
+          start_period: 10s
+          timeout: 10s
+    
+      application:
+        container_name: main-server
+        build:
+          dockerfile: Dockerfile
+        ports:
+          - "8080:8080"
+        environment:
+          SPRING_DATASOURCE_URL: ${DB_URL}
+          SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+          SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+        depends_on:
+          database:
+            condition: service_healthy
+        networks:
+          - network
+        env_file:
+          - .env
+    
+    networks:
+      network:
+        driver: bridge
+    ```
+
+
+```yaml
+services:
+  database:
+  ....
+  
+  application:
+  ....
+```
+
+- **services**
+  - 여러 개의 Docker 컨테이너로 이루어진 서비스들을 정의하는 블록
+  - 나는 두개의 서비스를 정의했다
+    - database - MySQL 데이터베이스
+    - application - Java 애플리케이션
+
+database 서비스만 살펴보자면(서비스는 구조가 같아서!!)
+
+```yaml
+database:
+    container_name: instagram
+    image: mysql:8.0
+    platform: linux/amd64
+    environment:
+      MYSQL_DATABASE: instagram
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      TZ: 'Asia/Seoul'
+    ports:
+      - "3306:3306"
+    command:
+      - "mysqld"
+      - "--character-set-server=utf8mb4"
+      - "--collation-server=utf8mb4_unicode_ci"
+    networks:
+      - network
+```
+
+- **container_name**
+  - 컨테이너 이름을 지정한다
+- **ports**
+  - 호스트와 컨테이너 간의 포트 연결을 설정한다
+  - 3306:3306
+    - 호스트의 3306 포트를 컨테이너의 3306 포트에 연결하여, 로컬에서 MySQL에 접근할 수 있도록 함
+- **networks**
+  - network 네트워크에 database를 연결하여, 다른 서비스와 통신할 수 있도록 설정
+
+```yaml
+networks:
+  network:
+    driver: bridge
+```
+
+- **networks**
+  - docker-compose에서 사용할 네트워크 설정
+  - **1. bridge 모드**
+    - 기본 네트워크
+    - 컨테이너 간 격리와 통신을 가능하게 하며, 같은 네트워크에 속한 컨테이너끼리 호스트 이름으로 접근할 수 있다
+    - ex)  application 컨테이너에서 database 컨테이너에 접근할 때 database라는 이름으로 접근할 수 있다
+  - **host 모드**
+    - 컨테이너가 호스트 시스템과 네트워크를 공유한다
+    - ex) 컨테이너에서 localhost를 사용하면 실제 호스트의 네트워크 인터페이스를 참조
+    - ex) 로컬 컴퓨터에서 직접 실행 중인 데이터베이스에 연결하려는 경우, host 모드에서 localhost:5432(데이터베이스 포트)로 쉽게 접근 가능
+
+🚨 **Spring Boot 애플리케이션이 지속적으로 종료와 재시작을 반복하는 문제 발생**
+
+이 문제는 DB 서비스가 완전히 준비되기 전에 Spring Boot 가 먼저 실행되면서 데이터베이스에 연결할 수 없어서 발생한 것이었다.
+
+이를 해결하기 위해 DB 서비스가 정상적으로 실행될 때까지 대기하도록 **healthy check** 를 도입했다!
+
+```yaml
+services:
+  database:
+    ....
+    healthcheck:
+      test: [ "CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p${DB_PASSWORD} --silent" ]
+      interval: 30s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
+      
+	application:
+	    ....
+	    depends_on:
+	      database:
+	        condition: service_healthy
+```
+
+- database 서비스 - healthcheck 설정
+  - **`test`**: `["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p${DB_PASSWORD} --silent"]`
+    - MySQL 서버 상태를 확인하는 명령어
+    - `mysqladmin ping` 명령어를 사용하여 데이터베이스가 실행 중인지 확인
+- application 서비스 - depends_on 설정
+  - depends_on
+    - application 서비스가 시작되기 전에 database 서비스가 시작되어야 함을 지정
+  - condition: service_healthy
+    - application 서비스는 database의 서비스가 헬스체크를 통과해 healthy 상태가 될 때까지 대기
+
+---
+
+## +) Volume 은 뭘까??
+
+docker는 개별적인 가상화 환경인 컨테이너에서 작업을 하여 모든 데이터는 컨테이너 내부에만 존재.
+
+→ 컨테이너를 삭제하면 컨테이너 내부에서 작업했던 데이터들이 같이 삭제된다.
+
+→ 데이터는 살리고 싶은데 어떻게 해야 좋을까?? ⇒ **볼륨(volume)** 을 사용하자!
+
+- 컨테이너 내부의 데이터를 외부로 링크를 걸어주는 기능
+
+

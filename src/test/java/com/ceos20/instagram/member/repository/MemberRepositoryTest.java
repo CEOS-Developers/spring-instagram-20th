@@ -1,6 +1,7 @@
 package com.ceos20.instagram.member.repository;
 
-import com.ceos20.instagram.member.domain.Member;
+import com.ceos20.instagram.domain.member.domain.Member;
+import com.ceos20.instagram.domain.member.repository.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

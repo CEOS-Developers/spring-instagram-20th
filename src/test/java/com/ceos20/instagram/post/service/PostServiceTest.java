@@ -1,12 +1,13 @@
 package com.ceos20.instagram.post.service;
 
-import com.ceos20.instagram.image.domain.Image;
-import com.ceos20.instagram.image.repository.ImageRepository;
-import com.ceos20.instagram.post.domain.Post;
-import com.ceos20.instagram.post.dto.CreatePostRequest;
-import com.ceos20.instagram.post.dto.GetPostResponse;
-import com.ceos20.instagram.post.repository.PostRepository;
-import com.ceos20.instagram.member.domain.Member;
+import com.ceos20.instagram.domain.image.domain.Image;
+import com.ceos20.instagram.domain.image.repository.ImageRepository;
+import com.ceos20.instagram.domain.post.domain.Post;
+import com.ceos20.instagram.domain.post.dto.CreatePostRequest;
+import com.ceos20.instagram.domain.post.dto.GetPostResponse;
+import com.ceos20.instagram.domain.post.repository.PostRepository;
+import com.ceos20.instagram.domain.member.domain.Member;
+import com.ceos20.instagram.domain.post.service.PostService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,8 +1,9 @@
 package com.ceos20.instagram.image.repository;
 
-import com.ceos20.instagram.image.domain.Image;
-import com.ceos20.instagram.post.domain.Post;
-import com.ceos20.instagram.member.domain.Member;
+import com.ceos20.instagram.domain.image.domain.Image;
+import com.ceos20.instagram.domain.image.repository.ImageRepository;
+import com.ceos20.instagram.domain.post.domain.Post;
+import com.ceos20.instagram.domain.member.domain.Member;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

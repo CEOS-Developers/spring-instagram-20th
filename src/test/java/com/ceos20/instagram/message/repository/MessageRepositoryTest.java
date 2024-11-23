@@ -1,9 +1,10 @@
 package com.ceos20.instagram.message.repository;
 
 
-import com.ceos20.instagram.chatRoom.domain.ChatRoom;
-import com.ceos20.instagram.message.domain.Message;
-import com.ceos20.instagram.member.domain.Member;
+import com.ceos20.instagram.domain.chatRoom.domain.ChatRoom;
+import com.ceos20.instagram.domain.message.domain.Message;
+import com.ceos20.instagram.domain.member.domain.Member;
+import com.ceos20.instagram.domain.message.repository.MessageRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,6 +1,6 @@
 package com.ceos20.instagram.global.exception;
 
-import com.ceos20.instagram.common.response.ApiResponse;
+import com.ceos20.instagram.global.common.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

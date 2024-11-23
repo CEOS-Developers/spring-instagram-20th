@@ -1,9 +1,10 @@
 package com.ceos20.instagram.follow.service;
 
-import com.ceos20.instagram.follow.dto.GetFollowerResponse;
-import com.ceos20.instagram.follow.dto.GetFollowingResponse;
-import com.ceos20.instagram.follow.repository.FollowRepository;
-import com.ceos20.instagram.member.domain.Member;
+import com.ceos20.instagram.domain.follow.dto.GetFollowerResponse;
+import com.ceos20.instagram.domain.follow.dto.GetFollowingResponse;
+import com.ceos20.instagram.domain.follow.repository.FollowRepository;
+import com.ceos20.instagram.domain.follow.service.FollowService;
+import com.ceos20.instagram.domain.member.domain.Member;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
