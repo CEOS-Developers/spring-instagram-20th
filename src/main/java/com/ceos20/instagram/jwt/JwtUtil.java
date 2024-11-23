@@ -76,6 +76,12 @@ public class JwtUtil {
         return Jwts.parser().setSigningKey(secretKey).build().parseClaimsJws(token).getBody().getSubject();
     }
 
+    // 토큰에서 유효시가 추출
+    public long getExpiration(String token) {
+        return Jwts.parser().setSigningKey(secretKey).build().parseClaimsJws(token).getBody().getExpiration().getTime();
+    }
+
+
     // Request의 Header에서 token 값
     public String resolveToken(HttpServletRequest request) {
         return request.getHeader("X-AUTH-TOKEN");
@@ -90,6 +96,7 @@ public class JwtUtil {
             return false;
         }
     }
+
 
 
 }

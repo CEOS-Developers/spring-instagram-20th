@@ -63,7 +63,7 @@ public class SecurityConfig {
     // 시큐리티 필터 설정
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtUtil jwtUtil) throws Exception {
-        final String[] ALL_URL = new String[] {"/accounts/login", "/accounts/user/signup"};
+        final String[] ALL_URL = new String[] {"/accounts/login", "/accounts/user/signup", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**"};
 
         http
                 .cors((cors -> cors.configurationSource(new CorsConfigurationSource() {

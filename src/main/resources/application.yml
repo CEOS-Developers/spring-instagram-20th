@@ -1,17 +1,37 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/instagram
+    url:  jdbc:mysql://mysql:3306/instagram?useSSL=false&oracle.jdbc.timezoneAsRegion=false
     username: root
     password: root1234
   jpa:
     database: mysql
-    database-platform: org.hibernate.dialect.MySQL8Dialect
+    database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
-        database-platform: org.hibernate.dialect.MySQL8Dialect
+        dialect: org.hibernate.dialect.MySQLDialect
+        database-platform: org.hibernate.dialect.MySQLDialect
         show_sql: true
         format_sql: true
+
+  security:
+    cors:
+      allow-origins: "http://localhost:3000"
+      allowed-methods: GET, POST, PUT, DELETE, OPTIONS
+
+  jwt:
+    secret: "Vwgff4uvzQ4pes0Zt7sDNtL6pxGIkg2k95ZIrVhvlGmxcDRq9O1fnLN2lEzItsNE4w_lQ3f7xd09ukYxzIYS6InrYfg4ed2BSP0wmZ2RJEswzDsCLNqwRRXW780o1TYbuQpiXuUN0TnwXzb2l4YnNcXLHyBBJoIU17y1H56Aq1-ABW6MREvcFvlW-oUcMw92R0piQK4hO_Xo8AFIDnbeAqQUQ2Q91iQZRTtiNrV9Gv_pF_f1LF9OLDnvmTTy7Av7yFRstie90G9ABYsFTrxywHLzA-QMDYOeUOk8wq6TfxKbULK8PqWR__s1ebFlA3bFO1shhUdffA"
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: "1111"
+
+logging:
+  level:
+    org.hibernate.SQL: debug           # Hibernate SQL 쿼리 로깅 (디버그 레벨)
+    org.hibernate.orm.jdbc.bind: trace  # Hibernate 바인딩된 변수 로깅 (트레이스 레벨)
+    com.ceos19.everytime: debug  # 프로젝트 도메인 패키지에 대한 디버그 레벨

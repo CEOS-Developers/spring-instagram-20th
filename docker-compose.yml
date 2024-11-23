@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  database:
+    container_name: mysql
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: root1234
+      MYSQL_DATABASE: instagram
+      TZ: 'Asia/Seoul'
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - 3307:3306
+    restart: always
+    networks:
+      - network
+    healthcheck:
+      test: [ "CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -proot1234 --silent" ]
+      interval: 30s
+      retries: 5
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    command: ["redis-server", "--requirepass", "1111"]
+    ports:
+      - 6379:6379
+    volumes:
+      - redisdata:/data
+    restart: always
+    networks:
+      - network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "1111", "ping"]
+      interval: 10s
+      retries: 3
+
+  web:
+    container_name: instagram
+    build:
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/instagram?useSSL=false&serverTimezone=Asia/Seoul
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root1234
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_REDIS_PASSWORD: "1111"
+    restart: always
+    volumes:
+      - app:/app
+    networks:
+      - network
+
+volumes:
+  dbdata:
+  redisdata:
+  app:
+
+networks:
+  network:
+    driver: bridge

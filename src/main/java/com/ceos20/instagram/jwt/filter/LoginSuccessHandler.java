@@ -46,7 +46,6 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         redisService.save(nickname, refreshToken, Duration.ofMillis(jwtUtil.getExpiration(refreshToken)));
 
-//        Cookie accessTokenCookie = createCookie(accessToken, "accessToken");
         Cookie refreshTokenCookie = createCookie(refreshToken, "refreshToken");
 
         response.addHeader("Authorization", "Bearer " + accessToken);
@@ -57,13 +56,12 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         response.setStatus(HttpServletResponse.SC_OK);
         response.getWriter().write(jsonResponse);
 
-//        response.addCookie(accessTokenCookie);
         response.addCookie(refreshTokenCookie);
     }
 
     private Cookie createCookie(String accessToken, String cookieName) {
         Cookie accessTokenCookie = new Cookie(accessToken, cookieName);
-        long expiration = jwtUtil.v(accessToken);
+        long expiration = jwtUtil.getExpiration(accessToken);
         int maxAge = (int)((expiration - new Date(System.currentTimeMillis()).getTime()) / 1000);
         accessTokenCookie.setMaxAge(maxAge);
         accessTokenCookie.setPath("/");

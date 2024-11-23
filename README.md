@@ -1,6 +1,332 @@
 # spring-instagram-20th
 CEOS 20th BE study - instagram clone coding
 
+## 6주차
+Image
+
+: container라는 독립 환경에서 서비스가 실행 가능하도록 필요한 요소 (서버환경, 실행 파일, 라이브러리 구저 등) 하나의 패키지 형태로 묶는 형태
+
+Container
+
+: 소프트웨어 서비스를 실행하ㅡ데 필요하 요소를 포함하ㅡ데 필요하 요소를 포함하ㅡ 경량 패키ㅣ
+
+ㅡㄱ, imageㅡ ㅡㄱ ㅓㅇ 화경과 파일, 라이브러리 등을 실행할 수 있는 Container를 생성하기 위한 파일!
+
+image를 통해 container를 계속 생성할 수 있고 하나의 image를 통해 여러 container를 생성 가ㅡㅇ
+
+### image layer
+imageㅡ container 실행을 위한 요소를 layer 구ㅗ를 ㅗㅇ해 과리
+
+=> 모드 것을 하ㅏ의 파일로 과리하기 비효율ㅓㄱ
+
+layer로 이뤄ㅣ 구ㅗ에서의 도악
+
+CentOS 버전 7 환경헤서 jdk 1.8을 사용하는 java로 개발된 프로그램을 실행하는 image
+![image](https://github.com/user-attachments/assets/05604979-3c20-49ac-a6cd-3aadc5ac9339)
+
+만약 my_app.jar에서 문제가 발생해서 이걸 new_my_app.jar로 바꾼 image를 만든다면
+
+![image](https://github.com/user-attachments/assets/83487c9b-63a0-4b7f-b72b-82e51feda447)
+
+image 구성하는 파일 전체를 수정하는 것이 아닌 마지막으로 수정된 layer만 변경
+
+그렇다면 중간에 위치한 layer인 jdk 1.8을 jdk 1.7로 변경하면?
+
+중간 레이어만 수정하는 것은 아님!!
+
+![image](https://github.com/user-attachments/assets/7e5d3a8e-69b8-4a06-8526-c88c2c01b9b1)
+
+layer는 기존 이미지에서 변경된 사항을 저장하는 구조
+
+?? 이게 무슨 말이지??
+
+즉, 여기서 이미지는 new_my_app.jar, jek 1.8, CentOS:7인 이미지만 있는게 아니라 사실은 CenOS:7이 이쓴 image CentOS:7과 jdk 1.8이 저장된 이미지까지 총 3개의 image 파일이 존재!
+![image](https://github.com/user-attachments/assets/5e684ae5-e2f0-40ae-b650-487ae3fa1582)
+
+그래서 만약 수정을 하게 된다면 jdk 1.8이 변경되는 image를 전부 수정해주어야 함
+
+Docker에서 docker inspect 명령어를 사용하면 맨아래 Layers 항목을 통해 해당 image에 layer를 확인할 수 있
+
+이런 image의 layer의 구조가 저장 방식의 효율을 끌어올림
+
+### Docker info
+뭐가 이미ㅣ를 pull하고 run하ㅡ 과ㅓㅇ에서 오류가 발생해서 실행파일의 위치 등을 파악할 필요가 있다며
+
+docker info 명령어를 사용하며 도움이 될 수 있음
+
+```hell
+Client:
+ Version:    27.1.1
+ Context:    desktop-linux
+ Debug Mode: false
+ Plugins:
+  buildx: Docker Buildx (Docker Inc.)
+    Version:  v0.16.1-desktop.1
+    Path:     C:\Program Files\Docker\cli-plugins\docker-buildx.exe
+  compose: Docker Compose (Docker Inc.)
+    Version:  v2.29.1-desktop.1
+    Path:     C:\Program Files\Docker\cli-plugins\docker-compose.exe
+  debug: Get a shell into any image or container (Docker Inc.)
+    Version:  0.0.34
+    Path:     C:\Program Files\Docker\cli-plugins\docker-debug.exe
+  desktop: Docker Desktop commands (Alpha) (Docker Inc.)
+    Version:  v0.0.14
+    Path:     C:\Program Files\Docker\cli-plugins\docker-desktop.exe
+  dev: Docker Dev Environments (Docker Inc.)
+    Version:  v0.1.2
+    Path:     C:\Program Files\Docker\cli-plugins\docker-dev.exe
+  extension: Manages Docker extensions (Docker Inc.)
+    Version:  v0.2.25
+    Path:     C:\Program Files\Docker\cli-plugins\docker-extension.exe
+  feedback: Provide feedback, right in your terminal! (Docker Inc.)
+    Version:  v1.0.5
+    Path:     C:\Program Files\Docker\cli-plugins\docker-feedback.exe
+  init: Creates Docker-related starter files for your project (Docker Inc.)
+    Version:  v1.3.0
+    Path:     C:\Program Files\Docker\cli-plugins\docker-init.exe
+  sbom: View the packaged-based Software Bill Of Materials (SBOM) for an image (Anchore Inc.)
+    Version:  0.6.0
+    Path:     C:\Program Files\Docker\cli-plugins\docker-sbom.exe
+  scout: Docker Scout (Docker Inc.)
+    Version:  v1.15.1
+    Path:     C:\Users\01070\.docker\cli-plugins\docker-scout.exe
+
+Server:
+ Containers: 7
+  Running: 2
+  Paused: 0
+  Stopped: 5
+ Images: 3
+ Server Version: 27.1.1
+ Storage Driver: overlayfs
+  driver-type: io.containerd.snapshotter.v1
+ Logging Driver: json-file
+ Cgroup Driver: cgroupfs
+ Cgroup Version: 1
+ Plugins:
+  Volume: local
+  Network: bridge host ipvlan macvlan null overlay
+  Log: awslogs fluentd gcplogs gelf journald json-file local splunk syslog
+ Swarm: inactive
+ Runtimes: io.containerd.runc.v2 runc
+ Default Runtime: runc
+ Init Binary: docker-init
+ containerd version: 2bf793ef6dc9a18e00cb12efb64355c2c9d5eb41
+ runc version: v1.1.13-0-g58aa920
+ init version: de40ad0
+ Security Options:
+  seccomp
+   Profile: unconfined
+ Kernel Version: 5.15.153.1-microsoft-standard-WSL2
+ Operating System: Docker Desktop
+ OSType: linux
+ Architecture: x86_64
+ CPUs: 8
+ Total Memory: 3.751GiB
+ Name: docker-desktop
+ ID: fdaccdc0-6074-497e-bcce-a561ac5a26d1
+ Docker Root Dir: /var/lib/docker
+ Debug Mode: false
+ HTTP Proxy: http.docker.internal:3128
+ HTTPS Proxy: http.docker.internal:3128
+ No Proxy: hubproxy.docker.internal
+ Labels:
+  com.docker.desktop.address=npipe://\\.\pipe\docker_cli
+ Experimental: false
+ Insecure Registries:
+  hubproxy.docker.internal:5555
+  127.0.0.0/8
+ Live Restore Enabled: false
+
+WARNING: No blkio throttle.read_bps_device support
+WARNING: No blkio throttle.write_bps_device support
+WARNING: No blkio throttle.read_iops_device support
+WARNING: No blkio throttle.write_iops_device support
+WARNING: daemon is not using the default seccomp profile
+```
+
+이러 식으로 뜨ㅡ데  여기서 erver 부부을 확이하며며
+| Containers | 컨테이너 수 |
+| --- | --- |
+| Images | 이미지의 수 |
+| Server Version | Docker 버전 |
+| Storage Driver | 스토리지 드라이버 종류 |
+| Kernel Version | 커널 버전 |
+| Operation System | OS 버전 |
+| OSType | OS 종류 |
+| Architecture | 아키텍처 |
+| CPUs | 사용 CPU |
+| Total Memory | 사용 메모리 |
+| Docker Root Dir | Docker 파일이 저장되는 root 디렉토리 위 |
+
+이러 ㅓㅇ보를 확이할 수 있고 
+
+-f 옵셔으로 사요아 ㅓㅇ의 ㅔㅁ플릿을 사용하여 출력 형식도 ㅣㅓㅇ 가ㅡㅇ!
+### Dockerfile
+: application을 container화 하기 위한 과정을 기록(layer)하는 것! -> 이것을 통해 image를 생성
+
+**[Dockerfilet 문법]**
+
+- FROM (필수 설정)
+  
+  생성할 image의 베이스가 되는 image 서렁
+
+  멀티 스테이지 빌드 시 여러개 사용 가능
+- LABEL
+
+  생성할 image에 key=value 형식으로 metadata 추가 (다수의 meatadata 추가 가ㅡㅇ)
+- ENV
+
+  생성할 image의 추가할 화경벼수 서렁
+
+  image를 ㅗㅇ해 생성되 container ㅐ부에서도 사용 가ㅡㅇ
+- ARG
+
+  Dockerfile ㅐ부에서 사용할 벼수를 key=value 또ㅡ key 혀애로 서렁
+
+  |입력|결과|
+  |----|----|
+  |key마 입력|key 값의 arguement가 입력될 것이라ㅡ 명시 ㅏㅏㅐㅁ|
+  |key=value|argument가 입력되ㅣ 앟아도 value로 ㅓㄱ용|
+  |key=value 해쓰데 argument 입력|오버라이드|
+- RUN
+
+  image를 마드ㅡ 과ㅓㅇ에서 FROM으로 서ㅓㅇ되 베이스 image에 추가로 실행할 명령어 입력
+- USER
+
+  image를 마드ㅡ 과ㅓㅇ에서 사용할 사요아 계ㅓㅇ 서렁
+
+  UER를 사용하기 위해서ㅡ 해당 UER가 기ㅗ layer에 생성되어 있어야 함
+
+  서렁아하며 슈퍼 유ㅓ로 ㅣ행됨
+- WORKDIR
+
+  image 만드는 과정(layer)에서 기본으로 작업할 디렉토리를 설정
+- COPY
+
+  image를 만든느 과정(layer)에서 추가할 파일과 추가될 경로를 입력 (복사)
+
+  추가할 파일은 Dockerfile이 있는 경로를 기반으로!
+  추가할 파일의 경우 context folder의 상위 디렉토리에 접근할 수 없기 때문에 접근이 필요할 경우 context folder 변경 필요
+- ADD
+
+  image를 만드는 과정에서 추가할 파일과 추가될 경로 입력
+
+  COPY와 유사하지만 추가 기능 제공
+
+  URL을 통해 파일을 다운로드 가능, 압축된 파일을 자동으로 추출
+
+  명료성과 예측 가능성을 위해서 COPY를 사용하는 것을 권장!
+- EXPOSE
+
+  imageㄹ르 통해 생성되는 container에서 노출할 port 명시
+
+  실제로 bind하기 위해서는 container 생성 시 옵션을 추가해야 함!
+- CMD
+
+  image를 통해 생성되는 container에서 실행할 command를 입력
+
+  Dockerfile 내부에서 한번만! 사용 가능 (생략 가능)
+
+  ENTRYPOINT 설정 시 CMD 내용이 ENTRYPOINT의 파라미터로 변경
+- ENTRYPOINT
+
+  image를 통해 생성되는 container에서 실행할 command를 입력
+
+  Dockerfile 내부에서 한 번만! 사용 가능(생략 가능)
+
+  CMD가 설정될 경우 ENTRYPOINT의 파라미터로 사용
+- ONBUILD
+
+  Dockerfile을 통해 생성된 image가 다른 Dockerfile에서 FROM을 통해 베이스 image로 사용되어 build될 때 실행할 명령어 입력
+
+  ```
+  FROM mirror.gcr.io/library/alpine:3.16
+  LABEL imagename="hackerpark"
+  LABEL version="1.0"
+  RUN echo "First Image Build"
+  ONBUILD RUN echo "First Base Image" >> /first.txt
+  ENTRYPOINT ["/bin/sh", "-c", "ls /"]
+  ```
+- STOPSIGNAL
+
+  image를 통해 생성되는 container 종료시 사용될 SIGNAL 설정
+
+  설정하지 않는 경우 기 SIGTERM
+
+  SIGTERM은 컨테이너가 프로세스를 정상적으로 종료할 수 있을 때까지 기다리고, 지정된 시간 (default-10sec)동안 종료되지 않으면 SIGKILL 전송 
+- HEALTHCHECK
+
+  image를 통해 생성되는 container에서 실행되는 프로세스의 상태를 확인하기 위해 설정
+
+  image에 curl이 포함되어야 함
+
+  - --interval 옵션을 통해 healthcheck의 interval을 설정
+  - --timeout 옵션을 통해 healthcheck CMD의 timeout을 설정
+  - --retries 옵션을 통해 healthcheck CMD의 tiemout 제한 개수 설정정
+- SHELL
+
+  Dockerfile에서 사용할 기본 shell을 설정
+
+멀티 스테이지
+: Dockerfile을 통해 image를 생성하는 과정에서 필요한 라이브러리와 패키지들을 모두 포함하기 때문에 최종 결과물로 생성된 image의 크기가 매우 커지는(GB) 경우도 발생하는데
+
+이때 image 만드는 과정과 image를 통해 container로 실행하기 위해 필요한 역역을 구분 지어 최종 결과물인 image의 경량화를 할 수 있는데
+
+Dockerfile을 이걸 위해서 멀티 스테이지 기능을 지원
+
+멀티 스테이지를 사용하기 위해서는 image를 만드는 과정에서 필요한 내용과 최종적으로 실행할 환경을 분리하는 작업 필요!
+
+이를 FROM을 사용하여 구분
+
+Dockerfile에 FROM을 여러번 사용해 각 stage를 분리하여 image의 크리르 줄일 수 있음
+
+멀티 스테이지에서 FROM과 ARG 위치에 따라 ARG 사용 방법이 다른데
+
+FROM 보다 ARG가 위에 정의된 경우 ARG 아래 쪽 FROM에서 모두 ARG 사용이 가능하지만
+
+아닌 경우 ARG를 포함하는 FROM에서만 사용이 가능하고 다른 FROM에서는 ARG를 다시 정의해 사용해야 함
+
+### Cache
+layer는 이전 과정에서의 변경되는 것을 기록하기 때문에 Dockerfile을 사용하여 image를 여러 번 build 하게 될 경우 layer의 변경점이 없다면 Cache 되어 이미 존재하는 layer를 재사용
+
+이 점을 활용하여 변하지 않는 layer(명령어)를 Dockerfile의 상단에 배치하여 cache 된 layer를 재사용하는 것이 유리
+
+### Docker-compose
+여러 개의 컨테이너를 하나로 묶어주는 역할
+
+yaml 포맷을 활용
+
+[도커 컴포즈 문법]
+- version
+
+  도커 컴포즈 파일의 버전
+- service
+
+  컨테이너를 실행하기 위한 단위
+
+  하위에 서비스 이름 -> 서비스 옵션 순으로 작성
+- build
+
+  build할 dockerfile의 경로 지정
+- ports
+
+  포트포워딩 지정 옵션
+
+  <호스트 포트>:<컨테이너 포트>
+- volume
+
+  바인드 마운트, 볼륨 지정
+- environment
+
+  컨테이너에서 사용할 환경변수 설정
+- depends_on
+  
+  실행 순서를 보장받고 싶을 때, 사용
+
+
+
+
 ## 5주차
 ### Spring Security 주요 객체
 - SecurityContextHolder, SecurityContext, Authentication

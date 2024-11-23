@@ -10,6 +10,7 @@ import com.ceos20.instagram.auth.dto.JoinRequestDto;
 import com.ceos20.instagram.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.Optional;
 @Service
 @RequiredArgsConstructor
@@ -66,7 +68,7 @@ public class AuthService implements UserDetailsService {
             User user = userRepository.findByNickname(nickname)
                     .orElseThrow(() -> new NotFoundException(ExceptionCode.NOT_FOUND_USER));
 
-            return jwtUtil.generateAccessToken(nickname, user.getRole());
+            return jwtUtil.generateAccessToken(nickname, user.getRole().toString());
         } else {
             throw new RuntimeException("존재하지 않는 토큰입니다.");
         }
