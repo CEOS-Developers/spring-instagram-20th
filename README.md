@@ -1089,31 +1089,30 @@ OAuth는 외부 애플리케이션이 사용자 대신 자원에 접근할 수 �
 
 CSRF는 사용자가 의도하지 않은 요청을 서버로 보내게 만들어 권한을 탈취하는 공격이며, XSS는 악성 스크립트를 삽입하여 사용자의 브라우저에서 정보를 탈취하거나 악성 행동을 유도하는 공격입니다. 
 CSRF -> 서버가 사용자를 신뢰 XSS ->  사용자가 서버를 신뢰 
-###CSRF (Cross-Site Request Forgery)
-
+CSRF (Cross-Site Request Forgery)
 1. 정의: CSRF는 악의적인 사용자가 사용자가 의도하지 않은 요청을 피해자의 브라우저를 통해 서버로 보내는 공격입니다. 피해자는 자신이 공격당하고 있다는 사실을 알지 못한 채, 정상적인 사용자로 위장하여 악의적인 요청을 보내게 됩니다.
-2. 발생 원인:서버가 요청을 처리할 때, 요청이 사용자로부터 온 것인지 확인하는 방법이 부족할 때 발생합니다. 보통 세션 ID나 쿠키를 통해 사용자를 인증하지만, 이를 검증하는 적절한 방법이 없다면 CSRF 공격에 취약해질 수 있습니다.
+2. 발생 원인:
 
+서버가 요청을 처리할 때, 요청이 사용자로부터 온 것인지 확인하는 방법이 부족할 때 발생합니다. 보통 세션 ID나 쿠키를 통해 사용자를 인증하지만, 이를 검증하는 적절한 방법이 없다면 CSRF 공격에 취약해질 수 있습니다.
 3. 공격 과정:
 
 공격자는 피해자가 로그인한 웹사이트를 대상으로 악의적인 요청을 만든 후, 피해자가 해당 웹사이트에 접속한 상태에서 공격자가 삽입한 악성 스크립트나 링크를 클릭하도록 유도합니다.
 피해자가 링크나 악성 요청을 클릭하면, 피해자의 브라우저는 이미 로그인된 상태에서 해당 요청을 서버로 보내게 됩니다.
 서버는 해당 요청이 정상적인 사용자의 요청이라고 판단하고 요청을 처리하게 됩니다. 이로 인해 공격자가 원래 의도한 악의적인 동작이 수행됩니다.
-
 예시:
+
 사용자가 은행 사이트에 로그인한 상태에서 악성 웹사이트에 접속합니다.
 악성 웹사이트는 피해자 계좌에서 다른 계좌로 송금하는 요청을 은행 서버로 보냅니다.
 은행 서버는 이 요청이 정상적인 사용자로부터 온 것이라 판단하고 송금을 처리합니다.
-###XSS (Cross-Site Scripting)
-
+XSS (Cross-Site Scripting)
 1. 정의: XSS는 공격자가 웹 애플리케이션에 악성 스크립트를 삽입하여 피해자의 브라우저에서 실행시키는 공격입니다. XSS는 사용자의 정보나 세션을 탈취하거나, 페이지를 변조하거나, 악성 코드가 실행되도록 할 수 있습니다.
 
-2. 발생 원인: 웹 애플리케이션이 사용자가 입력한 데이터를 제대로 필터링하지 않거나 이스케이프 처리하지 않는 경우 발생합니다. 공격자는 악성 스크립트를 입력 폼에 삽입하여 이를 다른 사용자의 브라우저에서 실행시키려고 합니다.
-   
+2. 발생 원인:
+
+웹 애플리케이션이 사용자가 입력한 데이터를 제대로 필터링하지 않거나 이스케이프 처리하지 않는 경우 발생합니다. 공격자는 악성 스크립트를 입력 폼에 삽입하여 이를 다른 사용자의 브라우저에서 실행시키려고 합니다.
 3. 공격 과정:
 
 공격자는 웹 애플리케이션의 입력 필드나 URL에 JavaScript와 같은 악성 스크립트를 삽입합니다.
-<script>(xss)</script>
 서버는 사용자가 입력한 데이터를 제대로 필터링하거나 이스케이프 처리하지 않고, 페이지에 반영합니다.
 다른 사용자가 해당 페이지를 로드하면, 악성 스크립트가 실행되어 사용자의 쿠키, 세션 정보, 개인 정보 등을 탈취하거나, 사용자가 모르게 악의적인 작업을 수행합니다.
 예시:
@@ -1179,3 +1178,199 @@ JWT가 CSRF에 상대적으로 안전한 이유는 주로 **명시적인 인증 
 - 서버는 **JWT 토큰을 검증**하여, 토큰이 유효한지, 만료되었는지 확인합니다.
 - 토큰이 유효한 경우, 해당 사용자가 작성한 게시글을 저장합니다.
 - 토큰이 유효하지 않거나 없으면, **403 Forbidden** 에러를 반환합니다.
+
+# 6주차 
+
+## docker-compose로 스프링부트+mysql 빌드
+
+**Dockerfile**
+
+```jsx
+# 1. 베이스 이미지 설정 (Java 17 사용)
+FROM openjdk:17-jdk-alpine
+
+# 2. 작업 디렉토리 설정
+WORKDIR /app
+
+# 3. Gradle 빌드 결과물 복사
+COPY build/libs/*.jar app.jar
+
+ENV SPRING_PROFILES_ACTIVE=prod
+
+# 4. 실행 명령 설정
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
+
+- 순서 FROM > WORKDIR > … 재빌드시 효율성 위해
+
+**docker-compose.yml**
+
+```jsx
+version: '3.8'
+
+services:
+  # Spring Boot 애플리케이션 서비스
+  spring-instagram:
+    build: .
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env  # .env 파일을 여기서 참조
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_TIME: ${JWT_EXPIRATION_TIME}
+    depends_on:
+      - mysql
+
+  # MySQL 서비스
+  mysql:
+    image: mysql:8
+    env_file:
+      - .env  # .env 파일을 여기서 참조
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    ports:
+      - "3307:3306"
+
+```
+
+![스크린샷 2024-11-16 095111](https://github.com/user-attachments/assets/8f3753fd-5acf-4fe2-84b4-6ea61e27ca85)
+
+`docker-compose up` - 컨테이너 실행
+
+![스크린샷 2024-11-16 095358](https://github.com/user-attachments/assets/b23190b9-9e88-4fcd-9aba-c92d501194a2)
+
+`docker ps` - 현재 실행중인 컨테이너 확인
+
+![스크린샷 2024-11-16 095517](https://github.com/user-attachments/assets/d49ac681-51cc-4e1f-a80d-82a7ff57b453)
+
+❗Error❗
+
+**com.mysql.cj.jdbc.exceptions.CommunicationsException: Communications link failure**
+
+springboot 가 계속 Exited되는 것을 볼 수 있음
+
+gradle build > docker 이미지 생성 > 컨테이너 실행
+
+로컬에서의 application.yml 설정과 docker 컨테이너에서의 application.yml설정은 달라야함
+
+도커는 애플리케이션과 데이터베이스를 분리된 컨테이너로 실행하므로, 컨테이너 내부에서 동작하는 데이터베이스에 접근하기 위해서는
+
+데이터베이스 컨테이너의 이름이거나 도커 네트워크에서 설정한 별칭을 이용해야한다.
+
+## Spring profiles
+
+Spring Boot에서는 환경별로 `application.properties` 또는 `application.yml` 파일을 분리하여 프로파일별 설정을 적용할 수 있습니다.
+
+예를 들어:
+
+- `application-dev.yml` (개발 환경)
+- `application-prod.yml` (운영 환경)
+
+환경별 설정 파일 (`application-dev.yml`):
+
+```yaml
+server:
+  port: 8080
+database:
+  url: jdbc:mysql://localhost:3306/dev_db
+
+```
+
+환경별 설정 파일 (`application-prod.yml`):
+
+```yaml
+server:
+  port: 8081
+database:
+  url: jdbc:mysql://localhost:3306/prod_db
+```
+
+### 2. **프로파일 활성화**
+
+- **코드로 설정**: `application.yml` 파일에서 기본 프로파일 설정.
+
+    ```yaml
+    spring:
+      profiles:
+        active: dev
+    ```
+
+
+**application.yml(일부)**
+
+```jsx
+spring:
+  config:
+    activate:
+      on-profile: dev  # 기본 활성화할 프로파일을 dev로 설정
+
+--- <<application-dev.yml 
+spring:
+  config:
+    activate:
+      on-profile: dev  # 로컬 개발 환경 프로파일
+  datasource:
+    url: jdbc:mysql://localhost:3306/insta  # 로컬 MySQL 연결 URL
+    username: 
+    password: 
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+--- <<application-prod.yml 
+spring:
+  config:
+    activate:
+      on-profile: prod  # Docker 환경 프로파일
+  datasource:
+    url: jdbc:mysql://mysql-1:3306/insta  # Docker MySQL 연결 URL
+    username: 
+    password: 
+    driver-class-name: com.mysql.cj.jdbc.Driver
+```
+
+**@ActiveProfiles("dev") 어노테이션**
+
+```jsx
+package com.ceos20.spring_instagram;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+
+@ActiveProfiles("dev")
+@SpringBootTest
+class SpringInstagramApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
+```
+
+**Dockerfile 설정**
+
+```jsx
+ENV SPRING_PROFILES_ACTIVE=prod
+```
+
+`docker-compose up --build` - 컨테이너 실행 + build
+
+**“The following 1 profile is active: “prod”**
+
+![스크린샷 2024-11-16 120807](https://github.com/user-attachments/assets/583817c9-e2b7-4ac6-81c9-3681b7967af7)
+
+[localhost:8080](http://localhost:8080) 접속!
+
+![스크린샷 2024-11-16 113026](https://github.com/user-attachments/assets/67b4c257-b1d2-44fa-8b3b-a56d388be5df)
+
+❗항상 공식문서를 참조하자
+
+https://docs.docker.com/compose/how-tos/environment-variables/set-environment-variables/
+
+https://docs.docker.com/desktop/troubleshoot-and-support/troubleshoot/#self-diagnose-tool
+
+https://velog.io/@fill0006/springbootmysqldocker-%EB%A9%80%ED%8B%B0-%EC%BB%A8%ED%85%8C%EC%9D%B4%EB%84%88-%ED%99%98%EA%B2%BD-%EA%B5%AC%EC%84%B1

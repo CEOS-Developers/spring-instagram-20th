@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # Spring Boot 애플리케이션 서비스
+  spring-instagram:
+    build: .
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env  # .env 파일을 여기서 참조
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_TIME: ${JWT_EXPIRATION_TIME}
+    depends_on:
+      - mysql
+
+  # MySQL 서비스
+  mysql:
+    image: mysql:8
+    env_file:
+      - .env  # .env 파일을 여기서 참조
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    ports:
+      - "3307:3306"
