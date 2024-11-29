@@ -1,6 +1,270 @@
 # spring-instagram-20th
 CEOS 20th BE study - instagram clone coding
 
+## 7주차
+### EC2
+아마존 웹 서비스에서 제공하는 클라우드 컴퓨팅 서비스
+
+**💭 클라우드 컴퓨팅?**
+
+인터넷(클라우드)을 통해 서버, 스토리지, 데이터베이스 등의 컴퓨팅 서비스를 제공
+
+즉, AWS에서 원격으로 제어할 수 있는 가상의 컴퓨터를 한 대 빌리는 것!
+
+
+**💭 EC2 인스턴스**
+
+EC2 인스턴스는 EC2 서비스를 통해 생성한 가상 서버 하나하나를 의미!
+
+EC2 인스턴스 생성 = AMI를 토대로 운영체제, CPU, RAM 혹은 런타임 등이 구성된 컴퓨터를 빌리는 것
+
+
+**💭 AMI(Amazon Machine Images)**
+![image](https://github.com/user-attachments/assets/df37929c-72a8-4a80-8f4d-8707fc2eee55)
+
+AWS에서 EC2 인스턴스를 생성하는데 사용하는 가상 머신 이미지
+
+EC2 인스턴스의 운영체제(OS), 애플리케이션, 설정, 데이터 등을 포함한 서버의 템플릿 역할
+
+=> EC2 인스턴스를 생성할 때, 가장 처음 OS를 설정해준 것(ex. 저희는 Ubuntu를 설정해주었습니다)이 AMI를 설정해주는 과정입니다!
+
+EC2 복사본이라고 생각하면 되는데... 앞서 설명한 인스턴스는 AMI의 사본으로 한 AMI로 여러 인스턴스 실행 가능
+
+**📑 인스턴스 유형**
+
+EC2는 한정된 요금범으로 EC2 인스턴스의 유형과 사이즈를 골라 사용 목적에 따라 최적화를 시키는 것이 중요!
+
+다양한 목적에 따라 유형을 선택해주면 됩니다!
+
+저희는 프리티어 계정이라 t2.micro를 설정해주었습니다!
+
+![image](https://github.com/user-attachments/assets/e004519f-9630-4d19-ba9f-434c1ae41f85)
+
+t 타입의 경우 저렴한 범용 서비스로 웹서버로 자주 이용한다고 합니다..!
+
+|인스턴스|설명|
+|---|---|
+|범용|vCPU, 메모리, 네트워크, 저장 공간 등이 평균적인 사양으로 제공|
+|컴퓨팅 최적화|다른 인스턴스 패밀리에 비해 메모리 대비 vCPU 비율이 높음|
+|메모리 최적화|다른 인스턴스 패밀리에 비해 메모리 용량이 큼|
+|스토리지 최적화|다른 인스턴스 패밀리에 비해 스토리지 용량이 큼|
+|GPU 인스턴스|고성능의 NVDIA GPU가 장착되어 있어 CUDA,OpenCL 등을 실행할 때 사용|
+|마이크로 인스턴스|가격이 가장 싼 인스턴스. 낮은 vCPU 성능과 적은 메모리 -> 프리티어에서 무료로 사용|
+
+**🌀 인스턴스의 생명 주기**
+
+AMI로부터 실행이 되고나서 종료될 때까지 EC2가 거치는 과정
+
+1. pending state
+제일 처음 AMI가 실행되는 준비 상태 -> EC2를 가동하기 위해 가상머신, ENI, EBS 등이 준비되는 과정
+2. running state
+실제로 EC2를 사용할 수 있ㄴ느 상태
+- 중지
+
+  인스턴스를 잠깐 멈추는 것으로 중지 중에는 인스턴트 요금이 미청구 된다!
+
+  단... EBS 요금, 다른 구성요소 (탄력적 ip 주소 등)에 대한 비용은 청구 되고
+
+  중지 후 재시작할 때 퍼블릭 ip가 변경됩니다!
+
+- 재부팅
+  인스턴스를 다시 시작하는 것
+
+  중지하고 다시 시작과 달리 퍼블릭 ip 변동 X!!!!
+  
+- 최대 절전모드
+  메모리 내용을 보존해서 재시작시 중단지점에서 시작 가능
+
+  어떤 프로그램을 실행시켰을 때 데이터를 하드디스크에서만 가져오는 것이 아니라 메모리에 올려놓는 것
+
+  컴퓨터/노트북의 최대 절전 모드와 같은 원리!
+3. shutting-down state
+인스턴스 종료 중 -> EBS도 같이 종료시킬 수 있고  EBS는 남기고 인스턴스만 종료할 수 있음
+4. terminated state
+완전히 종료, 인스턴스가 영구적으로 삭제
+
+**🔑 키 페어**
+![image](https://github.com/user-attachments/assets/e033619a-3c9d-40b9-829e-e3532d12ec5b)
+
+: 사용자가 EC2 인스턴스에 안전하게 접속할 수 있도록 제공되는 암호화 기반 인증 방식
+
+=> SSH 접속 인증에서 이 키 페어의 비공개 키를 사용해 인증 / 보안 강화
+
+🚨 비공개 키 파일은 AWS에 저장되지 않기에...!  잃어버린 경우 다시 다운로드 할 수 없습니다 ㅠㅠ 그래서 백업이 매우 중요합니다!
+
+만약 분실했다면 새 키 페이러르 생성하고 EC2 인스턴스에 새 키의 공개키를 추가해주어야 합니다!
+
+[키 페어 유형]
+- RSA
+  가장 널리 사용되는 키 유형으로 RSA 알고리즘을 사용해 암호화 및 인증
+- ED25519
+  더 빠르고 안전한 키 유형으로 키 크기가 작아 처리속도가 빠르며 보안 수준도 높음 (일부 구형 클라이언트에서는 지원하지 않을수도 있음)
+
+[파일 형식]
+- PEM (Privacy Enhanced Mail)
+  AWS에서 기본적으로 제공하는 형식으로 Open SSH 및 AWS CLI에서 사용
+
+  생성된 .pem 파일은 EC2 인스턴스에 접속하기 위해 사용
+- PPK (PuTTY Private Key)
+  Windows 환경에서 사용하는 PuTTY SSH 클라이언트 전용 파일 형식
+
+=> 파일 형식 선택 기준
+- Linux/Mac -> OpenSSH를 사용하므로 .pem 권장
+- Windows -> PuTTY를 사용하는 경우 .pem을 .ppk로 변환 후 사용 / OpenSSH 설치 환경에서는 .pem 사용
+- AWS CLI -> .pem만 지원
+
+**🛜 네트워크 설정**
+
+EC2 인스턴스의 네트워크 설정은 AWS Virtual Private Cloud(VPC)안에서 인스턴스가 안전하고 효율적으로 작동하도록 구성하는 작업.
+
+네트워크 설정은 인터넷 연결, 보안, IP 주소 관리, 서브넷 등 포함
+![image](https://github.com/user-attachments/assets/2eda64ad-7a74-43ba-a037-8ffb7daae09d)
+![image](https://github.com/user-attachments/assets/f27c06dd-e6e2-4cfe-b4e7-06e494046aa3)
+
+[구성 요소]
+- VPC
+
+  앞서 만든 VPC 설정 (가상 네트워크 -> EC2 인스턴스의 네트워크 범위 정의)
+  
+- 서브넷
+
+  VPC 내 네트워크를 더 작은 단위로 나눔 (네트워크 내 네트워크)
+  
+- 인터넷 게이트웨이
+
+  퍼블릭 서브넷에 연결된 EC2 인스턴스가 인터넷과 통신할 수 있도록 하는 구성요소
+
+  퍼블릭 IP를 사용하는 EC2 인스턴스는 인터넷 게이트웨이를 통해 외부 네트워크와 통신
+  
+- 보안그룹
+
+  인스턴스 수준의 방화벽 역할, 인스턴스에 들어오고 나가는 네트워크 트래픽 제어
+
+  인바운드 규칙(수신 규칙)과 아웃바운드 규칙(송신 규칙)으로 구성
+
+  예) SSH 접속을 허용하려면 인바운드 규칙에 TCP 포트 22 열어주기!
+  
+- 네트워크 ACL
+
+  서브넷 수준에서 트래픽을 제어하는 방화벽, 보안 그룹보다 낮은 수준에서 동작, 서브넷의 트래픽 규칙을 관리
+  
+- 퍼블릭/프라이빗 IP
+
+  퍼블릭: 외부 네트워크와 통신하기 위해 사용하는 주소
+
+  프라이빗: 내부 네트워크 통신용
+  
+- 탄력적 IP
+
+  EC2 인스턴스에 할당할 수 잇는 고정 퍼블릭 ip 주소
+
+  **인스턴스를 중지/재시작하더라도 ip 주소가 변경되지 않음**
+
+**ENI(Elastic Network Interface)**
+EC2 네트워크는 인스턴스의 전체 네트워크 환경을 정의하고 설정하는 큰 틀의 개념
+
+ENI는 이 네트워크 환경 안에서 EC2 인스턴스가 네트워크와 구체적으로 연결되는 인터페이스
+
+**🫙 EBS(Elastic Block Store)**
+![image](https://github.com/user-attachments/assets/b175174c-eb9b-4882-b86c-46666889d017)
+
+
+인스턴스가 연산에 관한 처리를 한다면 데이터 저장은 EBS가 함!
+
+EC2 인스턴스에 장착하여 사용할 수 있는 가상 저장 장치
+
+EBS는 EC2에 설치된 OS에서 그냥 일반적인 하드디스크나 SSD처럼 인식됨 -> 원하는 크기, 성능을 원하는 수치로 설정 가능
+
+- 볼륨
+
+  EBS의 가장 기본적인 형태로 OS에서 바로 사용 가능한 형태
+
+  볼륨 유형에는 6가지 종류가 있고 우리가 사용한s gp2는 범용적 목적을 갖는 SSD로 균형잡인 성능과 가격을 가짐
+
+  |볼륨 유형|설명|
+  |---|---|
+  |gp2/gp3|범용적 목적을 갖는 SSD로 균형잡힌 성능과 가격|
+  |io1/io2|고성능 SSD. 낮은 지연율, 높은 처리량을 가져야할 경우 사용|
+  |st1|낮은 가격대의 HDD, 데이터들을 자주 접근하고 처리량을 집약적으로 높임|
+  |sc1|낮은 가격대의 HDD. 데이터에 덜 접근하는 경우 사용|
+  
+- 이미지
+
+  AMI를 줄여 부르는 말로 OS가 설치된 형태, 이를 통해 EC2 인스턴스 생성
+  
+- 스냅샷
+
+  EBS 볼륨의 전체 내용 중 특정 시점을 그대로 복사해 저장한 파일
+
+  EBS 볼륨의 백업 파일 성격을 가지고 있음
+  
+- IOPS(Input/Output Operation Per Second)
+
+  저장 장치의 성능 측정 단위
+
+### 트러블슈팅
+instagram을 pull 받어서 run 하는데 자꾸 컨테이너에서 오류로 실패하는 일 발생...!
+
+```bash
+docker logs {컨테이너 id}
+```
+로 문제의 원인 파악
+
+Communications link failure 문제였음
+
+`docker ps`로 확인해본 결과 
+
+| CONTAINER ID | IMAGE                 | COMMAND                | CREATED          | STATUS                   | PORTS                                              | NAMES                   |
+|--------------|-----------------------|------------------------|------------------|--------------------------|---------------------------------------------------|-------------------------|
+| d994a1cc1e32 | 010709min/instagram  | "java -jar /app.jar"   | 10 minutes ago   | Exited (1) 10 minutes ago|                                                   | pensive_dubinsky        |
+| ce95451f590b | 010709min/instagram  | "java -jar /app.jar"   | 15 minutes ago   | Exited (1) 15 minutes ago|                                                   | loving_mcclintock       |
+| 8cb249b2222b | 010709min/instagram  | "java -jar /app.jar"   | 25 minutes ago   | Exited (1) 25 minutes ago|                                                   | bold_turing             |
+| 4f1450775426 | 010709min/instagram  | "java -jar /app.jar"   | 26 minutes ago   | Exited (1) 26 minutes ago|                                                   | infallible_dijkstra     |
+| 0b6738e9e1a4 | 010709min/instagram  | "java -jar /app.jar"   | 31 minutes ago   | Exited (1) 30 minutes ago|                                                   | agitated_mclean         |
+| 3a72cfbe3813 | redis                | "docker-entrypoint.s…" | 31 minutes ago   | Up 31 minutes            | 0.0.0.0:6379->6379/tcp, :::6379->6379/tcp         | redis-container         |
+| 67751fd710fd | redis                | "docker-entrypoint.s…" | 32 minutes ago   | Exited (0) 31 minutes ago|                                                   | objective_taussig       |
+| 687aa81cddca | 010709min/instagram  | "java -jar /app.jar"   | 35 minutes ago   | Exited (1) 35 minutes ago|                                                   | vigilant_sammet         |
+| d74e22c2d83d | 010709min/instagram  | "java -jar /app.jar"   | 41 minutes ago   | Exited (1) 40 minutes ago|                                                   | clever_yalow            |
+| c4e7fba913c4 | 010709min/instagram  | "java -jar /app.jar"   | 48 minutes ago   | Exited (1) 47 minutes ago|                                                   | recursing_shirley       |
+| 091d20ec1fe3 | mysql                | "docker-entrypoint.s…" | 53 minutes ago   | Up 53 minutes            | 0.0.0.0:3306->3306/tcp, :::3306->3306/tcp, 33060/tcp | charming_sutherland     |
+
+
+mysql은 잘 올라가있는데... instagram과 연결이 안되고 있었음...!
+
+1. 내가 설정해준 mysql 컨테이너 이름과 실제 실행되는 컨테이너 이름이 다름
+
+    => 실행되는 컨테이너 멈춰주고
+   ```bash
+   docker run --name mysql -e MYSQL_ROOT_PASSWORD=root1234 -e MYSQL_DATABASE=instagram -d mysql:5.7
+   ```
+
+    이것처럼 name을 재설정 해줌
+
+   그럼에도 불구하고... 실패
+2. 그래서 mysql에 접속가능한지 확인하기 위해 컨테이너 내부로 들어감
+  ```bash
+  mysql -h <your-rds-endpoint> -P 3306 -u <your-username> -p
+  ```
+  
+  혹시나 하는 마음에 `SHOW DATABASES;` 해보니 instagram이라는 db가 없어 새로 생성해줌
+3. 환경변수 설정
+  ```bash
+  docker run -d --name instagram \
+  -e SPRING_DATASOURCE_URL="jdbc:mysql://mydbinstance.rds.amazonaws.com:3306/instagram?useSSL=false&serverTimezone=Asia/Seoul" \
+  -e SPRING_DATASOURCE_USERNAME=admin \
+  -e SPRING_DATASOURCE_PASSWORD=admin1234 \
+  -p 8080:8080 \
+  010709min/instagram
+  ```
+  처음엔 명령어에 환경변수로 필요한 것들을 전부 입력해주지 않았는데 이런식으로 전부 입력해주었습니다.
+
+  => 성공...?!
+  
+
+<img src="https://github.com/user-attachments/assets/3f7ac494-251b-4a75-a045-26713fbcc301" alt="description" width="500" />
+
+  
+
 ## 6주차
 Image
 
