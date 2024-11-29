@@ -1374,3 +1374,94 @@ https://docs.docker.com/compose/how-tos/environment-variables/set-environment-va
 https://docs.docker.com/desktop/troubleshoot-and-support/troubleshoot/#self-diagnose-tool
 
 https://velog.io/@fill0006/springbootmysqldocker-%EB%A9%80%ED%8B%B0-%EC%BB%A8%ED%85%8C%EC%9D%B4%EB%84%88-%ED%99%98%EA%B2%BD-%EA%B5%AC%EC%84%B1
+
+### 배포 방법
+
+### **ECS + Fargate + RDS + API Gateway**
+
+1. **API Gateway**:
+    - API Gateway를 통해 외부에서 애플리케이션에 접근합니다.
+    - 인증, 로깅, API 라우팅 등을 처리합니다.
+2. **ECS + Fargate**:
+    - Spring Boot 애플리케이션을 Docker 컨테이너로 실행합니다.
+    - Fargate는 서버리스 방식으로 컨테이너를 관리하여, EC2 인스턴스를 관리할 필요가 없습니다.
+    - 애플리케이션의 스케일링을 자동으로 처리할 수 있습니다.
+3. **RDS**:
+    - MySQL을 AWS RDS에서 관리하여 데이터베이스를 운영합니다.
+    - RDS를 사용하면 데이터베이스 관리가 간편해지고, 자동 백업과 확장성이 보장됩니다.
+4. **VPC**:
+    - ECS, RDS, API Gateway 등을 모두 동일한 VPC 내에 배치하여 네트워크를 관리합니다.
+    - 보안을 강화하고, VPC 내에서만 접근 가능하도록 설정할 수 있습니다.
+
+### **EC2 +  RDS + API Gateway + ALB**
+
+1. **EC2 인스턴스**:
+    - EC2에 Docker 컨테이너로 애플리케이션을 배포합니다.
+    - EC2의 장점은 서버에 대한 완전한 제어가 가능하다는 점입니다.
+2. **RDS**:
+    - MySQL 데이터베이스는 RDS에서 관리합니다.
+    - EC2에서 직접 데이터베이스를 관리할 필요가 없으며, RDS가 자동 백업과 확장성을 제공합니다.
+3. **API Gateway**:
+    - API Gateway를 통해 외부에서 애플리케이션에 접근합니다.
+    - 인증, 로깅, API 라우팅 등을 처리합니다.
+
+참고 블로그
+
+https://velog.io/@jjeongdong/Devops-Docker-Compose%EB%A5%BC-%EC%9D%B4%EC%9A%A9%ED%95%98%EC%97%AC-EC2%ED%99%98%EA%B2%BD%EC%97%90%EC%84%9C-%EB%B0%B0%ED%8F%AC#ec2-linux%EC%97%90%EC%84%9C-docker-compose-%EC%8B%A4%ED%96%89
+
+https://velog.io/@jkijki12/Docker-Compose%EB%A1%9C-EC2%EC%97%90-Spring-%EB%B0%B0%ED%8F%AC%ED%95%B4%EB%B3%B4%EA%B8%B0
+
+### EC2 + RDS 진행
+
+```jsx
+mkdir spring-instagram
+git clone <git repository url>
+```
+
+docker-compose.yml, application.yml 수정
+
+- rds endpoint 로 수정
+
+```jsx
+docker ps
+```
+
+### gradle 설정
+
+- 최신 Gradle 설치 스크립트를 사용:
+
+    ```bash
+    
+    wget https://services.gradle.org/distributions/gradle-8.3-bin.zip
+    sudo mkdir /opt/gradle
+    sudo unzip -d /opt/gradle gradle-8.3-bin.zip
+    
+    ```
+
+- Gradle를 시스템 경로에 추가:
+
+    ```bash
+    
+    sudo nano /etc/profile.d/gradle.sh
+    
+    ```
+
+  아래 내용을 추가:
+
+    ```bash
+    
+    export GRADLE_HOME=/opt/gradle/gradle-8.3
+    export PATH=$GRADLE_HOME/bin:$PATH
+    ```
+
+- 변경사항 반영:
+
+    ```bash
+    
+    source /etc/profile.d/gradle.sh
+    ```
+
+
+컨테이너 실행 확인
+
+![image](https://github.com/user-attachments/assets/9eef1fe0-0fab-493f-8e73-68c8cbc43cb5)
